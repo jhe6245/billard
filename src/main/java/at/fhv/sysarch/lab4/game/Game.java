@@ -1,17 +1,11 @@
 package at.fhv.sysarch.lab4.game;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import at.fhv.sysarch.lab4.rendering.Renderer;
-import javafx.scene.input.MouseDragEvent;
 import javafx.scene.input.MouseEvent;
-import org.dyn4j.collision.CategoryFilter;
-import org.dyn4j.collision.Filter;
-import org.dyn4j.collision.TypeFilter;
-import org.dyn4j.dynamics.Force;
 import org.dyn4j.dynamics.World;
 import org.dyn4j.geometry.Vector2;
 
@@ -53,15 +47,16 @@ public class Game {
 
         dragCurrent = new Vector2(pX, pY);
 
+        var dragVector = new Vector2(dragCurrent);
+        dragVector.subtract(dragStart);
+
         var cueTf = this.renderer.getCue().getBody().getTransform();
 
         cueTf.setTranslation(dragStart);
-        cueTf.setRotation(dragCurrent.subtract(dragStart).getDirection());
+        cueTf.setRotation(dragVector.getDirection());
 
         var cueBody = this.renderer.getCue().getBody();
 
-        cueBody.clearAccumulatedForce();
-        cueBody.clearAccumulatedTorque();
         cueBody.setLinearVelocity(new Vector2());
         cueBody.setAngularVelocity(0);
 
@@ -70,8 +65,19 @@ public class Game {
 
     public void onMouseReleased(MouseEvent e) {
 
+        if(this.dragStart == null || this.dragCurrent == null)
+            return;
+
+        var impulse = new Vector2(dragCurrent);
+        impulse.subtract(dragStart);
+        impulse.multiply(-1);
+
         var cb = this.renderer.getCue().getBody();
-        cb.applyImpulse(dragStart.subtract(dragCurrent).multiply(10));
+        cb.applyImpulse(impulse);
+
+        // System.out.println("drag from " + dragStart + " to " + dragCurrent + " applying " + impulse + " to cue");
+
+
         this.dragStart = this.dragCurrent = null;
     }
 
