@@ -60,7 +60,8 @@ public class Game {
         cueBody.setLinearVelocity(new Vector2());
         cueBody.setAngularVelocity(0);
 
-        cueBody.setActive(true);
+        if(!cueBody.isActive())
+            cueBody.setActive(true);
     }
 
     public void onMouseReleased(MouseEvent e) {

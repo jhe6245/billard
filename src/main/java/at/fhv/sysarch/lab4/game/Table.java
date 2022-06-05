@@ -14,9 +14,7 @@ import org.dyn4j.geometry.Vector2;
 public class Table {
 
     // table collides with balls but not with cue
-    public static class CollisionFilter extends Ball.CollisionFilter {
-
-    }
+    public static class CollisionFilter extends Ball.CollisionFilter { }
 
 
     private final Body tableBody;
@@ -80,7 +78,6 @@ public class Table {
             new Vector2(halfCushionWidth * 0.5 - Constants.POCKET_RADIUS, Constants.CUSHION_SIZE * 0.5),
             new Vector2(-halfCushionWidth * 0.5 + Constants.POCKET_RADIUS * 0.1, Constants.CUSHION_SIZE * 0.5));
 
-        // todo fehler?
         Polygon bottomRightCushionGeom = Geometry.createPolygon(
                 new Vector2(-halfCushionWidth * 0.5, -Constants.CUSHION_SIZE * 0.5),
                 new Vector2(halfCushionWidth * 0.5, -Constants.CUSHION_SIZE * 0.5),
