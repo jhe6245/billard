@@ -3,6 +3,7 @@ package at.fhv.sysarch.lab4.game;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import at.fhv.sysarch.lab4.rendering.Renderer;
 import javafx.scene.input.MouseEvent;
@@ -114,16 +115,16 @@ public class Game {
     private void initWorld() {
         this.world.setGravity(new Vector2());
 
-        List<Ball> balls = new ArrayList<>();
+        List<Ball> regularBalls = new ArrayList<>();
         
         for (Ball b : Ball.values()) {
             if (b == Ball.WHITE)
                 continue;
 
-            balls.add(b);
+            regularBalls.add(b);
         }
 
-        this.placeBalls(balls);
+        this.placeBalls(regularBalls);
 
         Ball.WHITE.setPosition(Table.Constants.WIDTH * 0.25, 0);
         
@@ -140,5 +141,6 @@ public class Game {
         world.addBody(table.getBody());
         world.addBody(cue.getBody());
 
+        world.addListener(new StrikeCollisionListener(cue, Set.of(Ball.values()), b -> System.out.println(b + " struck")));
     }
 }

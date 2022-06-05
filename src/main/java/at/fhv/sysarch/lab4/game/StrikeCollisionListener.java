@@ -24,37 +24,35 @@ public class StrikeCollisionListener implements CollisionListener {
 
     @Override
     public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2) {
-
-        if(cue.getBody().equals(body1) || cue.getBody().equals(body2)) {
-
-            var struckBall = balls
-                    .stream()
-                    .filter(b -> b.getBody().equals(body1) || b.getBody().equals(body2)).findAny();
-
-            struckBall.ifPresent(listener::onBallStrike);
-        }
-
-        return false;
+        return true;
     }
 
     @Override
     public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Penetration penetration) {
-        return collision(body1, fixture1, body2, fixture2);
+        return true;
+
     }
 
     @Override
     public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Manifold manifold) {
-        return collision(body1, fixture1, body2, fixture2);
-
+        return true;
     }
 
     @Override
     public boolean collision(ContactConstraint contactConstraint) {
-        return collision(
-                contactConstraint.getBody1(),
-                contactConstraint.getFixture1(),
-                contactConstraint.getBody2(),
-                contactConstraint.getFixture2()
-        );
+
+        var b1 = contactConstraint.getBody1();
+        var b2 = contactConstraint.getBody2();
+
+        if(cue.getBody().equals(b1) || cue.getBody().equals(b2)) {
+
+            var struckBall = balls
+                    .stream()
+                    .filter(b -> b.getBody().equals(b1) || b.getBody().equals(b2)).findAny();
+
+            struckBall.ifPresent(listener::onBallStrike);
+        }
+
+        return true;
     }
 }
