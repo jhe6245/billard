@@ -67,7 +67,7 @@ public enum Ball {
                 Constants.RESTITUTION);
         this.body.translate(0, 0);
         // disable rotation, looks strange
-        this.body.setMass(MassType.FIXED_ANGULAR_VELOCITY);
+        this.body.setMass(MassType.NORMAL);
         this.body.setLinearDamping(Constants.LINEAR_DAMPING);
         this.body.setAngularDamping(Constants.ANGULAR_DAMPING);
 

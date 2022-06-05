@@ -4,11 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import at.fhv.sysarch.lab4.game.Cue;
 import org.dyn4j.dynamics.BodyFixture;
-import org.dyn4j.geometry.Circle;
-import org.dyn4j.geometry.Polygon;
-import org.dyn4j.geometry.Transform;
-import org.dyn4j.geometry.Vector2;
+import org.dyn4j.geometry.*;
 
 import at.fhv.sysarch.lab4.game.Ball;
 import at.fhv.sysarch.lab4.game.Table;
@@ -23,6 +21,7 @@ public class Renderer extends AnimationTimer {
     private long lastUpdate;
     private List<Ball> balls;
     private Table table;
+    private Cue cue;
 
     private final GraphicsContext gc;
 
@@ -31,7 +30,7 @@ public class Renderer extends AnimationTimer {
     private final double sceneWidth;
     private final double sceneHeight;
 
-    private final static double SCALE = 400;
+    private final double scale;
 
     private final Affine poolCoords;
     private final Affine jfxCoords;
@@ -48,8 +47,7 @@ public class Renderer extends AnimationTimer {
 
     private Optional<FrameListener> frameListener;
 
-    public Renderer(final GraphicsContext gc, 
-        int sceneWidth, int sceneHeight) {
+    public Renderer(final GraphicsContext gc, int sceneWidth, int sceneHeight) {
         this.gc = gc;
 
         this.balls = new ArrayList<>();
@@ -58,6 +56,8 @@ public class Renderer extends AnimationTimer {
         this.centerY = (double) sceneHeight * 0.5;
         this.sceneWidth = sceneWidth;
         this.sceneHeight = sceneHeight;
+
+        this.scale = Math.min(sceneWidth / 1920.0, sceneHeight / 1080.0) * 600;
         
         this.frameListener = Optional.empty();
         
@@ -106,6 +106,14 @@ public class Renderer extends AnimationTimer {
         this.table = t;
     }
 
+    public void setCue(Cue c) {
+        this.cue = c;
+    }
+
+    public Cue getCue() {
+        return cue;
+    }
+
     public void setFrameListener(FrameListener l) {
         this.frameListener = Optional.of(l);
     }
@@ -116,7 +124,7 @@ public class Renderer extends AnimationTimer {
         // and physics is scaled by factor SCALE
 
         double pX = screenX - centerX;
-        pX = pX / SCALE;
+        pX = pX / scale;
 
         return pX;
     }
@@ -127,7 +135,7 @@ public class Renderer extends AnimationTimer {
         // and physics is scaled by factor SCALE
         
         double pY = screenY - centerY;
-        pY = pY / SCALE;
+        pY = pY / scale;
 
         return pY;
     }
@@ -157,8 +165,8 @@ public class Renderer extends AnimationTimer {
 
     private void drawTable() {
         // render green table surface (which is not a physical body!)
-        double tableWidth = (Table.Constants.WIDTH + Table.Constants.CUSHION_SIZE) * SCALE;
-        double tableHeight = (Table.Constants.HEIGHT + Table.Constants.CUSHION_SIZE) * SCALE;
+        double tableWidth = (Table.Constants.WIDTH + Table.Constants.CUSHION_SIZE) * scale;
+        double tableHeight = (Table.Constants.HEIGHT + Table.Constants.CUSHION_SIZE) * scale;
         double tableX = -tableWidth * 0.5;
         double tableY = -tableHeight * 0.5;
         this.gc.setTransform(this.poolCoords);
@@ -188,11 +196,11 @@ public class Renderer extends AnimationTimer {
             Transform t = b.getBody().getTransform();
             Circle s = b.getShape();
 
-            double r = s.getRadius() * SCALE;
+            double r = s.getRadius() * scale;
             double d = r * 2;
             
-            double x = t.getTranslationX() * SCALE;
-            double y = t.getTranslationY() * SCALE;
+            double x = t.getTranslationX() * scale;
+            double y = t.getTranslationY() * scale;
             
             // rendering of billard balls happens in their own coordinates
             // center of the world is at center of the window not top left corner
@@ -228,7 +236,52 @@ public class Renderer extends AnimationTimer {
     }
 
     private void drawCue() {
-        // TODO: draw cue
+        if(this.cue == null || !this.cue.getBody().isActive())
+            return;
+
+        var cueTf = this.cue.getBody().getTransform();
+
+        this.gc.setTransform(jfxCoords);
+        this.gc.translate(centerX, centerY);
+        this.gc.scale(scale, scale);
+
+        // now in physics space
+
+        this.gc.translate(cueTf.getTranslationX(), cueTf.getTranslationY());
+        this.gc.rotate(cueTf.getRotationAngle() * 180 / Math.PI);
+
+        var tip = this.cue.getShape();
+        this.gc.setFill(Color.RED);
+
+        {
+            double width = tip.getWidth();
+            double height = tip.getHeight();
+
+            double rotation = tip.getRotationAngle();
+            Vector2 center = tip.getEllipseCenter();
+
+            var transform1  = this.gc.getTransform();
+
+            this.gc.translate(center.x, center.y);
+            this.gc.rotate(rotation * 180 / Math.PI);
+
+            this.gc.fillArc(
+                    -width * .5,
+                    -height,
+                    width,
+                    height,
+                    0,
+                    180,
+                    ArcType.OPEN
+            );
+
+            this.gc.setStroke(Color.BEIGE);
+            this.gc.setLineWidth(Cue.Constants.TIP_DIAMETER);
+            this.gc.strokeLine(0, 0, 0, Cue.Constants.LENGTH);
+
+            this.gc.setTransform(transform1);
+        }
+
     }
 
     private void drawFPS(double dt) {
@@ -290,8 +343,8 @@ public class Renderer extends AnimationTimer {
         
         int i = 0;
         for (Vector2 v : vs) {
-            xsBuffer[i] = v.x * SCALE;
-            ysBuffer[i] = v.y * SCALE;
+            xsBuffer[i] = v.x * scale;
+            ysBuffer[i] = v.y * scale;
             i++;
         }
 
@@ -304,10 +357,10 @@ public class Renderer extends AnimationTimer {
     private void renderPocket(Circle c) {
         this.gc.setFill(Color.BLACK);
 
-        double r = c.getRadius() * SCALE;
+        double r = c.getRadius() * scale;
         double d = r * 2;
-        double x = c.getCenter().x * SCALE;
-        double y = c.getCenter().y * SCALE;
+        double x = c.getCenter().x * scale;
+        double y = c.getCenter().y * scale;
         
         Affine pocketTrans = new Affine(this.poolCoords);
         pocketTrans.appendTranslation(x, y);
