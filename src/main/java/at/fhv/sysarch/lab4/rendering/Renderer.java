@@ -250,7 +250,7 @@ public class Renderer extends AnimationTimer {
         this.gc.translate(cueTf.getTranslationX(), cueTf.getTranslationY());
         this.gc.rotate(cueTf.getRotationAngle() * 180 / Math.PI);
 
-        var tip = this.cue.getShape();
+        var tip = this.cue.getTip();
         this.gc.setFill(Color.RED);
 
         {
@@ -275,9 +275,24 @@ public class Renderer extends AnimationTimer {
                     ArcType.OPEN
             );
 
-            this.gc.setStroke(Color.BEIGE);
-            this.gc.setLineWidth(Cue.Constants.TIP_DIAMETER);
-            this.gc.strokeLine(0, 0, 0, Cue.Constants.LENGTH);
+            this.gc.setTransform(transform1);
+        }
+
+        var shaft = this.cue.getShaft();
+        this.gc.setFill(Color.BEIGE);
+        {
+            double width = shaft.getWidth();
+            double height = shaft.getHeight();
+
+            double rotation = shaft.getRotationAngle();
+            Vector2 center = shaft.getCenter();
+
+            var transform1 = this.gc.getTransform();
+
+            this.gc.translate(center.x, center.y);
+            this.gc.rotate(rotation * 180 / Math.PI);
+
+            this.gc.fillRect(-width / 2, -height / 2, width, height);
 
             this.gc.setTransform(transform1);
         }

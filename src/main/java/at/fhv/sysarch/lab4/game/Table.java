@@ -12,6 +12,13 @@ import org.dyn4j.geometry.Polygon;
 import org.dyn4j.geometry.Vector2;
 
 public class Table {
+
+    // table collides with balls but not with cue
+    public static class CollisionFilter extends Ball.CollisionFilter {
+
+    }
+
+
     private final Body tableBody;
 
     public enum TablePart {
@@ -109,6 +116,9 @@ public class Table {
 
             this.tableBody.addFixture(c);
         }
+
+        var collisionFilter = new CollisionFilter();
+        this.tableBody.getFixtures().forEach(f -> f.setFilter(collisionFilter));
     }
 
     private void createPockets() {

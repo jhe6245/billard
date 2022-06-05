@@ -1,5 +1,6 @@
 package at.fhv.sysarch.lab4.game;
 
+import org.dyn4j.collision.TypeFilter;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.geometry.Circle;
 import org.dyn4j.geometry.Geometry;
@@ -24,6 +25,10 @@ public enum Ball {
     FOURTEEN(Color.GREEN, false),
     FIFTEEN(Color.MAROON, false),
     WHITE(Color.WHITE, true);
+
+    // base class for collision hierarchy
+    // balls collide with cue and table
+    public static class CollisionFilter extends TypeFilter { }
 
     private Color c;
     private boolean solid;
@@ -72,6 +77,9 @@ public enum Ball {
         this.body.setAngularDamping(Constants.ANGULAR_DAMPING);
 
         this.body.setUserData(this);
+
+        var collisionFilter = new CollisionFilter();
+        this.body.getFixtures().forEach(f -> f.setFilter(collisionFilter));
     }
 
     public static class Constants {

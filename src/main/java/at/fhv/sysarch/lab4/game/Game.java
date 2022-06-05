@@ -8,6 +8,9 @@ import java.util.List;
 import at.fhv.sysarch.lab4.rendering.Renderer;
 import javafx.scene.input.MouseDragEvent;
 import javafx.scene.input.MouseEvent;
+import org.dyn4j.collision.CategoryFilter;
+import org.dyn4j.collision.Filter;
+import org.dyn4j.collision.TypeFilter;
 import org.dyn4j.dynamics.Force;
 import org.dyn4j.dynamics.World;
 import org.dyn4j.geometry.Vector2;
@@ -129,5 +132,6 @@ public class Game {
         }
         world.addBody(table.getBody());
         world.addBody(cue.getBody());
+
     }
 }
