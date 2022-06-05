@@ -2,7 +2,6 @@ package at.fhv.sysarch.lab4.game;
 
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.geometry.Geometry;
-import org.dyn4j.geometry.HalfEllipse;
 import org.dyn4j.geometry.MassType;
 import org.dyn4j.geometry.Rectangle;
 
@@ -13,26 +12,15 @@ public class Cue {
 
     private final Body body;
 
-    private final HalfEllipse tip;
-
-
-
-    private final Rectangle shaft;
+    private final Rectangle geometry;
 
     public Cue() {
 
         this.body = new Body();
 
-        this.tip = Geometry.createHalfEllipse(
-                Constants.TIP_DIAMETER,
-                Constants.TIP_THICKNESS
-        );
-        this.tip.rotate(-Math.PI * .5);
-        this.body.addFixture(tip, Constants.DENSITY);
-
-        this.shaft = Geometry.createRectangle(Constants.LENGTH, Constants.TIP_DIAMETER);
-        this.shaft.translate(Constants.LENGTH / 2, 0);
-        this.body.addFixture(shaft, Constants.DENSITY);
+        this.geometry = Geometry.createRectangle(Constants.LENGTH, Constants.TIP_DIAMETER);
+        this.geometry.translate(Constants.LENGTH / 2, 0);
+        this.body.addFixture(geometry, Constants.DENSITY);
 
         this.body.translateToOrigin();
         this.body.setMass(MassType.NORMAL);
@@ -45,12 +33,8 @@ public class Cue {
         return this.body;
     }
 
-    public HalfEllipse getTip() {
-        return tip;
-    }
-
-    public Rectangle getShaft() {
-        return shaft;
+    public Rectangle getGeometry() {
+        return geometry;
     }
 
     public static class Constants {

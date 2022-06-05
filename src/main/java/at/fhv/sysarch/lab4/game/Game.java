@@ -19,6 +19,8 @@ public class Game {
     private Vector2 dragStart = null;
     private Vector2 dragCurrent = null;
 
+    private boolean playerOne = true;
+
     public Game(Renderer renderer) {
         this.renderer = renderer;
         this.world = new World();
@@ -72,13 +74,11 @@ public class Game {
 
         var impulse = new Vector2(dragCurrent);
         impulse.subtract(dragStart);
-        impulse.multiply(-1);
+        impulse.multiply(-3);
+        impulse.setMagnitude(Math.min(impulse.getMagnitude(), 5));
 
         var cb = this.renderer.getCue().getBody();
         cb.applyImpulse(impulse);
-
-        // System.out.println("drag from " + dragStart + " to " + dragCurrent + " applying " + impulse + " to cue");
-
 
         this.dragStart = this.dragCurrent = null;
     }
@@ -141,6 +141,19 @@ public class Game {
         world.addBody(table.getBody());
         world.addBody(cue.getBody());
 
-        world.addListener(new StrikeCollisionListener(cue, Set.of(Ball.values()), b -> System.out.println(b + " struck")));
+        world.addListener(new StrikeCollisionListener(cue, Set.of(Ball.values()), this::onBallStrike));
+    }
+
+    private void onBallStrike(Ball b) {
+        System.out.println(b + " hit");
+
+        var cb = this.cue.getBody();
+        cb.setActive(false);
+
+        this.renderer.setActionMessage(b + " was struck by Player " + (playerOne ? 1 : 2));
+
+        playerOne ^= true;
+
+        this.renderer.setStrikeMessage("Next strike: Player " + (playerOne ? 1 : 2));
     }
 }

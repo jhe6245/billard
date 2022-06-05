@@ -57,7 +57,7 @@ public class Renderer extends AnimationTimer {
         this.sceneWidth = sceneWidth;
         this.sceneHeight = sceneHeight;
 
-        this.scale = Math.min(sceneWidth / 1920.0, sceneHeight / 1080.0) * 600;
+        this.scale = Math.min(sceneWidth / 1920.0, sceneHeight / 1080.0) * 400;
         
         this.frameListener = Optional.empty();
         
@@ -236,7 +236,7 @@ public class Renderer extends AnimationTimer {
     }
 
     private void drawCue() {
-        if(this.cue == null || !this.cue.getBody().isActive())
+        if(this.cue == null)
             return;
 
         var cueTf = this.cue.getBody().getTransform();
@@ -250,52 +250,27 @@ public class Renderer extends AnimationTimer {
         this.gc.translate(cueTf.getTranslationX(), cueTf.getTranslationY());
         this.gc.rotate(cueTf.getRotationAngle() * 180 / Math.PI);
 
-        var tip = this.cue.getTip();
-        this.gc.setFill(Color.RED);
 
-        {
-            double width = tip.getWidth();
-            double height = tip.getHeight();
+        var rect = this.cue.getGeometry();
 
-            double rotation = tip.getRotationAngle();
-            Vector2 center = tip.getEllipseCenter();
+        double width = rect.getWidth();
+        double height = rect.getHeight();
 
-            var transform1  = this.gc.getTransform();
+        double rotation = rect.getRotationAngle();
+        Vector2 center = rect.getCenter();
 
-            this.gc.translate(center.x, center.y);
-            this.gc.rotate(rotation * 180 / Math.PI);
+        var transform1 = this.gc.getTransform();
 
-            this.gc.fillArc(
-                    -width * .5,
-                    -height,
-                    width,
-                    height,
-                    0,
-                    180,
-                    ArcType.OPEN
-            );
+        this.gc.translate(center.x, center.y);
+        this.gc.rotate(rotation * 180 / Math.PI);
 
-            this.gc.setTransform(transform1);
-        }
-
-        var shaft = this.cue.getShaft();
         this.gc.setFill(Color.BEIGE);
-        {
-            double width = shaft.getWidth();
-            double height = shaft.getHeight();
+        this.gc.fillRect(-width / 2, -height / 2, width, height);
 
-            double rotation = shaft.getRotationAngle();
-            Vector2 center = shaft.getCenter();
+        this.gc.setFill(Color.RED);
+        this.gc.fillRect(-width / 2, -height / 2, Cue.Constants.TIP_THICKNESS, height);
 
-            var transform1 = this.gc.getTransform();
-
-            this.gc.translate(center.x, center.y);
-            this.gc.rotate(rotation * 180 / Math.PI);
-
-            this.gc.fillRect(-width / 2, -height / 2, width, height);
-
-            this.gc.setTransform(transform1);
-        }
+        this.gc.setTransform(transform1);
 
     }
 

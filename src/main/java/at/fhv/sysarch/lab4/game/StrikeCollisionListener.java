@@ -1,15 +1,14 @@
 package at.fhv.sysarch.lab4.game;
 
-import org.dyn4j.collision.manifold.Manifold;
-import org.dyn4j.collision.narrowphase.Penetration;
 import org.dyn4j.dynamics.Body;
-import org.dyn4j.dynamics.BodyFixture;
-import org.dyn4j.dynamics.CollisionListener;
-import org.dyn4j.dynamics.contact.ContactConstraint;
+import org.dyn4j.dynamics.contact.ContactListener;
+import org.dyn4j.dynamics.contact.ContactPoint;
+import org.dyn4j.dynamics.contact.PersistedContactPoint;
+import org.dyn4j.dynamics.contact.SolvedContactPoint;
 
 import java.util.Set;
 
-public class StrikeCollisionListener implements CollisionListener {
+public class StrikeCollisionListener implements ContactListener {
 
     private final Cue cue;
     private final Set<Ball> balls;
@@ -23,26 +22,17 @@ public class StrikeCollisionListener implements CollisionListener {
     }
 
     @Override
-    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2) {
-        return true;
-    }
+    public boolean begin(ContactPoint point) { return true; }
+
 
     @Override
-    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Penetration penetration) {
-        return true;
-
-    }
+    public void sensed(ContactPoint point) { }
 
     @Override
-    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Manifold manifold) {
-        return true;
-    }
+    public void end(ContactPoint point) {
 
-    @Override
-    public boolean collision(ContactConstraint contactConstraint) {
-
-        var b1 = contactConstraint.getBody1();
-        var b2 = contactConstraint.getBody2();
+        var b1 = point.getBody1();
+        var b2 = point.getBody2();
 
         if(cue.getBody().equals(b1) || cue.getBody().equals(b2)) {
 
@@ -52,7 +42,14 @@ public class StrikeCollisionListener implements CollisionListener {
 
             struckBall.ifPresent(listener::onBallStrike);
         }
-
-        return true;
     }
+
+    @Override
+    public boolean persist(PersistedContactPoint point) { return true; }
+
+    @Override
+    public boolean preSolve(ContactPoint point) { return true; }
+
+    @Override
+    public void postSolve(SolvedContactPoint point) { }
 }
