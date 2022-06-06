@@ -32,6 +32,9 @@ public class Table {
 
         this.createCushions();
         this.createPockets();
+
+        var collisionFilter = new CollisionFilter();
+        this.tableBody.getFixtures().forEach(f -> f.setFilter(collisionFilter));
     }
 
     public Body getBody() {
@@ -113,9 +116,6 @@ public class Table {
 
             this.tableBody.addFixture(c);
         }
-
-        var collisionFilter = new CollisionFilter();
-        this.tableBody.getFixtures().forEach(f -> f.setFilter(collisionFilter));
     }
 
     private void createPockets() {

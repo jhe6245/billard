@@ -141,7 +141,7 @@ public class Game {
         world.addBody(table.getBody());
         world.addBody(cue.getBody());
 
-        world.addListener(new StrikeCollisionListener(cue, Set.of(Ball.values()), this::onBallStrike));
+        world.addListener(new ContactDispatcher(cue, Set.of(Ball.values()), this::onBallStrike, table, this::onBallPocketed));
     }
 
     private void onBallStrike(Ball b) {
@@ -155,5 +155,12 @@ public class Game {
         playerOne ^= true;
 
         this.renderer.setStrikeMessage("Next strike: Player " + (playerOne ? 1 : 2));
+    }
+
+    private void onBallPocketed(Ball b) {
+        System.out.println(b + " pocketed");
+
+        world.removeBody(b.getBody());
+        renderer.removeBall(b);
     }
 }
