@@ -2,6 +2,8 @@ package at.fhv.sysarch.lab4.physics;
 
 import org.dyn4j.dynamics.*;
 
+import java.util.stream.Collectors;
+
 public class StepDispatcher extends StepAdapter {
 
     private final ObjectsRestListener onObjectsRestListener;
@@ -15,12 +17,9 @@ public class StepDispatcher extends StepAdapter {
     @Override
     public void end(Step step, World world) {
 
-        var objectsAtRest = world.getBodies().stream().allMatch(b -> b.getLinearVelocity().getMagnitude() < .01);
-
-        // todo ???
-        var bodies = world.getBodies().size();
-        var sleeping = world.getBodies().stream().filter(Body::isAsleep).count();
-        System.out.println(100.0 * sleeping / bodies + "% sleeping");
+        var objectsAtRest = world.getBodies().stream()
+                .filter(Body::isActive)
+                .allMatch(b -> b.getLinearVelocity().getMagnitude() < .01);
 
         if(objectsAtRest && !atRestLastStep) {
             onObjectsRestListener.onObjectsAtRest();

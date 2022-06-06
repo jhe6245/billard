@@ -161,6 +161,8 @@ public class Game {
         System.out.println(b + " hit");
 
         var cb = this.cue.getBody();
+        cb.setLinearVelocity(new Vector2());
+        cb.setAngularVelocity(0);
         cb.setActive(false);
 
         if(!b.isWhite()) {
