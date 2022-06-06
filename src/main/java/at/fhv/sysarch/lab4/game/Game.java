@@ -126,7 +126,7 @@ public class Game {
 
         this.placeBalls(regularBalls);
 
-        Ball.WHITE.setPosition(Table.Constants.WIDTH * 0.25, 0);
+        resetWhite();
         
         renderer.addBall(Ball.WHITE);
         
@@ -144,23 +144,45 @@ public class Game {
         world.addListener(new ContactDispatcher(cue, Set.of(Ball.values()), this::onBallStrike, this::onBallPocketed));
     }
 
+
+    private static void resetWhite() {
+        Ball.WHITE.setPosition(Table.Constants.WIDTH * 0.25, 0);
+    }
+
+    private String currentPlayer() {
+        return "Player " + (playerOne ? 1 : 2);
+    }
+
     private void onBallStrike(Ball b) {
         System.out.println(b + " hit");
 
         var cb = this.cue.getBody();
         cb.setActive(false);
 
-        this.renderer.setActionMessage(b + " was struck by Player " + (playerOne ? 1 : 2));
+        if(!b.isWhite()) {
+            renderer.setFoulMessage("Non-white ball struck!");
+        }
+
+
+        this.renderer.setActionMessage(b + " was struck by " + currentPlayer());
 
         playerOne ^= true;
 
-        this.renderer.setStrikeMessage("Next strike: Player " + (playerOne ? 1 : 2));
+        this.renderer.setStrikeMessage("Next strike: " + currentPlayer());
     }
 
     private void onBallPocketed(Ball b) {
         System.out.println(b + " pocketed");
 
-        world.removeBody(b.getBody());
-        renderer.removeBall(b);
+        if(b.isWhite()) {
+            renderer.setFoulMessage("White ball pocketed!");
+            renderer.setActionMessage(currentPlayer() + " pocketed the white ball!");
+            resetWhite();
+        } else {
+            world.removeBody(b.getBody());
+            renderer.removeBall(b);
+        }
+
+
     }
 }
