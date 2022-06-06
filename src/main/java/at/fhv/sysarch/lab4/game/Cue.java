@@ -20,10 +20,10 @@ public class Cue {
 
         this.geometry = Geometry.createRectangle(Constants.LENGTH, Constants.TIP_DIAMETER);
         this.geometry.translate(Constants.LENGTH / 2, 0);
-        this.body.addFixture(geometry, Constants.DENSITY);
+        this.body.addFixture(geometry);
 
-        this.body.translateToOrigin();
-        this.body.setMass(MassType.NORMAL);
+        this.body.getTransform().setTranslation(1, 0);
+        this.body.setMass(MassType.INFINITE);
 
         var collisionFilter = new CollisionFilter();
         this.body.getFixtures().forEach(f -> f.setFilter(collisionFilter));
@@ -41,10 +41,7 @@ public class Cue {
         // SI units - meters, kg
 
         public static final double LENGTH = 1.45;
-        public static final double MASS = 0.54;
         public static final double TIP_DIAMETER = 0.013;
         public static final double TIP_THICKNESS = 0.01;
-        public static final double VOLUME = LENGTH * TIP_DIAMETER ;
-        public static final double DENSITY = MASS / VOLUME;
     }
 }

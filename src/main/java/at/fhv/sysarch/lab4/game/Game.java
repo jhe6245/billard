@@ -75,10 +75,10 @@ public class Game {
         var impulse = new Vector2(dragCurrent);
         impulse.subtract(dragStart);
         impulse.multiply(-3);
-        impulse.setMagnitude(Math.min(impulse.getMagnitude(), 5));
+        impulse.setMagnitude(Math.min(impulse.getMagnitude(), 3));
 
         var cb = this.renderer.getCue().getBody();
-        cb.applyImpulse(impulse);
+        cb.setLinearVelocity(impulse);
 
         this.dragStart = this.dragCurrent = null;
     }
