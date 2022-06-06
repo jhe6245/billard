@@ -141,7 +141,7 @@ public class Game {
         world.addBody(table.getBody());
         world.addBody(cue.getBody());
 
-        world.addListener(new ContactDispatcher(cue, Set.of(Ball.values()), this::onBallStrike, table, this::onBallPocketed));
+        world.addListener(new ContactDispatcher(cue, Set.of(Ball.values()), this::onBallStrike, this::onBallPocketed));
     }
 
     private void onBallStrike(Ball b) {

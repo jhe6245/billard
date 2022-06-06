@@ -2,6 +2,8 @@ package at.fhv.sysarch.lab4.game;
 
 import at.fhv.sysarch.lab4.physics.BallPocketedListener;
 import javafx.scene.control.Tab;
+import org.dyn4j.collision.Fixture;
+import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.contact.ContactListener;
 import org.dyn4j.dynamics.contact.ContactPoint;
 import org.dyn4j.dynamics.contact.PersistedContactPoint;
@@ -13,25 +15,28 @@ public class ContactDispatcher implements ContactListener {
 
     private final Cue cue;
     private final Set<Ball> balls;
+
     private final BallStrikeListener strikeListener;
-    private final Table table;
     private final BallPocketedListener pocketedListener;
 
-    public ContactDispatcher(Cue cue, Set<Ball> balls, BallStrikeListener strikeListener, Table table, BallPocketedListener pocketedListener) {
+    public ContactDispatcher(Cue cue, Set<Ball> balls, BallStrikeListener strikeListener, BallPocketedListener pocketedListener) {
         this.cue = cue;
         this.balls = balls;
+
         this.strikeListener = strikeListener;
-        this.table = table;
         this.pocketedListener = pocketedListener;
     }
 
-    @Override
-    public boolean begin(ContactPoint point) {
-
-
-
-        return true;
+    private boolean isCue(Body body) {
+        return cue.getBody().equals(body);
     }
+
+    private static boolean isPocket(Fixture fixture) {
+        return Table.TablePart.POCKET.equals(fixture.getUserData());
+    }
+
+    @Override
+    public boolean begin(ContactPoint point) { return true; }
 
     @Override
     public boolean persist(PersistedContactPoint point) {
@@ -51,22 +56,17 @@ public class ContactDispatcher implements ContactListener {
 
         var struckBall = struckBallO.get();
 
-        if(cue.getBody().equals(b1) || cue.getBody().equals(b2)) {
+        if(isCue(b1) || isCue(b2)) {
 
             strikeListener.onBallStrike(struckBall);
         }
-        else if((table.getBody().equals(b1) || table.getBody().equals(b2))) {
+        else if(isPocket(f1) || isPocket(f2)) {
 
-            var pocketMarker = Table.TablePart.POCKET;
+            var ballRadius = struckBall.getBody().getRotationDiscRadius();
 
-            if(pocketMarker.equals(f1.getUserData()) || pocketMarker.equals(f2.getUserData())) {
+            if(point.getDepth() > ballRadius) {
 
-                var ballRadius = struckBall.getBody().getRotationDiscRadius();
-
-                if(point.getDepth() > ballRadius) {
-
-                    pocketedListener.onBallPocketed(struckBall);
-                }
+                pocketedListener.onBallPocketed(struckBall);
             }
         }
 
