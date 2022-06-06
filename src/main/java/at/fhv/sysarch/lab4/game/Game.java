@@ -5,11 +5,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import at.fhv.sysarch.lab4.physics.BoundsDispatcher;
 import at.fhv.sysarch.lab4.physics.ContactDispatcher;
-import at.fhv.sysarch.lab4.physics.ObjectsRestListener;
 import at.fhv.sysarch.lab4.physics.StepDispatcher;
 import at.fhv.sysarch.lab4.rendering.Renderer;
 import javafx.scene.input.MouseEvent;
+import org.dyn4j.collision.AxisAlignedBounds;
 import org.dyn4j.dynamics.World;
 import org.dyn4j.geometry.Vector2;
 
@@ -37,19 +38,20 @@ public class Game {
     }
 
     public void onMousePressed(MouseEvent e) {
-        double x = e.getX();
-        double y = e.getY();
-        double pX = this.renderer.screenToPhysicsX(x);
-        double pY = this.renderer.screenToPhysicsY(y);
+        double pX = this.renderer.screenToPhysicsX(e.getX());
+        double pY = this.renderer.screenToPhysicsY(e.getY());
 
         dragStart = new Vector2(pX, pY);
+
+        var cb = this.renderer.getCue().getBody();
+        cb.setLinearVelocity(new Vector2());
+        cb.setAngularVelocity(0);
+        cb.setActive(false);
     }
 
     public void onMouseDragged(MouseEvent e) {
-        double x = e.getX();
-        double y = e.getY();
-        double pX = renderer.screenToPhysicsX(x);
-        double pY = renderer.screenToPhysicsY(y);
+        double pX = this.renderer.screenToPhysicsX(e.getX());
+        double pY = this.renderer.screenToPhysicsY(e.getY());
 
         dragCurrent = new Vector2(pX, pY);
 
@@ -60,14 +62,6 @@ public class Game {
 
         cueTf.setTranslation(dragStart);
         cueTf.setRotation(dragVector.getDirection());
-
-        var cueBody = this.renderer.getCue().getBody();
-
-        cueBody.setLinearVelocity(new Vector2());
-        cueBody.setAngularVelocity(0);
-
-        if(!cueBody.isActive())
-            cueBody.setActive(true);
     }
 
     public void onMouseReleased(MouseEvent e) {
@@ -75,13 +69,12 @@ public class Game {
         if(this.dragStart == null || this.dragCurrent == null)
             return;
 
-        var impulse = new Vector2(dragCurrent);
-        impulse.subtract(dragStart);
-        impulse.multiply(-3);
+        var impulse = new Vector2(dragStart).subtract(dragCurrent).multiply(3);
         impulse.setMagnitude(Math.min(impulse.getMagnitude(), 3));
 
         var cb = this.renderer.getCue().getBody();
         cb.setLinearVelocity(impulse);
+        cb.setActive(true);
 
         this.dragStart = this.dragCurrent = null;
     }
@@ -117,6 +110,7 @@ public class Game {
 
     private void initWorld() {
         this.world.setGravity(new Vector2());
+        this.world.setBounds(new AxisAlignedBounds(10, 10));
 
         List<Ball> regularBalls = new ArrayList<>();
         
@@ -146,6 +140,7 @@ public class Game {
 
         world.addListener(new ContactDispatcher(cue, Set.of(Ball.values()), this::onBallStrike, this::onBallPocketed));
         world.addListener(new StepDispatcher(this::onObjectsRest));
+        world.addListener(new BoundsDispatcher(cue, this::onCueMissed));
     }
 
 
@@ -194,5 +189,13 @@ public class Game {
         playerOne ^= true;
 
         this.renderer.setStrikeMessage("Next strike: " + currentPlayer());
+    }
+
+    private void onCueMissed() {
+        var cb = this.cue.getBody();
+        cb.setActive(false);
+        cb.setLinearVelocity(new Vector2());
+        cb.getTransform().setTranslation(1, 0);
+        cb.getTransform().setRotation(0);
     }
 }

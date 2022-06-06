@@ -33,12 +33,10 @@ public class ContactDispatcher extends ContactAdapter {
         return Table.TablePart.POCKET.equals(fixture.getUserData());
     }
 
-    @Override
-    public boolean begin(ContactPoint point) { return true; }
-
+    // called while objects touch
+    // used to detect pocketing balls if they overlap enough
     @Override
     public boolean persist(PersistedContactPoint point) {
-
         var b1 = point.getBody1();
         var b2 = point.getBody2();
 
@@ -54,11 +52,7 @@ public class ContactDispatcher extends ContactAdapter {
 
         var struckBall = struckBallO.get();
 
-        if(isCue(b1) || isCue(b2)) {
-
-            strikeListener.onBallStrike(struckBall);
-        }
-        else if(isPocket(f1) || isPocket(f2)) {
+        if(isPocket(f1) || isPocket(f2)) {
 
             var ballRadius = struckBall.getBody().getRotationDiscRadius();
 
@@ -67,7 +61,21 @@ public class ContactDispatcher extends ContactAdapter {
                 pocketedListener.onBallPocketed(struckBall);
             }
         }
-
         return true;
+    }
+
+    // called when objects stop touching
+    // used to detect hitting balls with cue
+    @Override
+    public void end(ContactPoint point) {
+        var b1 = point.getBody1();
+        var b2 = point.getBody2();
+
+        if(isCue(b1) || isCue(b2)) {
+            balls.stream()
+                    .filter(b -> b.getBody().equals(b1) || b.getBody().equals(b2))
+                    .findAny()
+                    .ifPresent(strikeListener::onBallStrike);
+        }
     }
 }

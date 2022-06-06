@@ -19,7 +19,9 @@ public class StepDispatcher extends StepAdapter {
 
         var objectsAtRest = world.getBodies().stream()
                 .filter(Body::isActive)
-                .allMatch(b -> b.getLinearVelocity().getMagnitude() < .01);
+                .allMatch(Body::isAsleep);
+
+        // var moving = world.getBodies().stream().filter(Body::isActive).filter(b -> !b.isAsleep()).collect(Collectors.toList());
 
         if(objectsAtRest && !atRestLastStep) {
             onObjectsRestListener.onObjectsAtRest();

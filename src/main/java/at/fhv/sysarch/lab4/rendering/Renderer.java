@@ -270,6 +270,12 @@ public class Renderer extends AnimationTimer {
         this.gc.setFill(Color.RED);
         this.gc.fillRect(-width / 2, -height / 2, Cue.Constants.TIP_THICKNESS, height);
 
+        if(cue.getBody().isActive()) {
+            this.gc.setStroke(Color.RED);
+            this.gc.setLineWidth(.005);
+            this.gc.strokeRect(-width / 2, -height / 2, width, height);
+        }
+
         this.gc.setTransform(transform1);
 
     }
