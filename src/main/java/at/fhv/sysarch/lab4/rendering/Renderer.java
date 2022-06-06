@@ -19,7 +19,7 @@ import javafx.scene.transform.Affine;
 
 public class Renderer extends AnimationTimer {
     private long lastUpdate;
-    private List<Ball> balls;
+    private final List<Ball> balls;
     private Table table;
     private Cue cue;
 
@@ -94,6 +94,14 @@ public class Renderer extends AnimationTimer {
         this.player2Score = player2Score;
     }
 
+    public void incrementPlayer1Score(int delta) {
+        this.player1Score += delta;
+    }
+
+    public void incrementPlayer2Score(int delta) {
+        this.player2Score += delta;
+    }
+
     public void addBall(Ball b) {
         this.balls.add(b);
     }
@@ -101,7 +109,7 @@ public class Renderer extends AnimationTimer {
     public void removeBall(Ball b) {
         this.balls.remove(b);
     }
-    
+
     public void setTable(Table t) {
         this.table = t;
     }
@@ -142,7 +150,7 @@ public class Renderer extends AnimationTimer {
 
     @Override
     public void handle(long now) {
-        double dt = (double) (now - lastUpdate) / 1000_000_000.0;
+        double dt = (double) (now - lastUpdate) / 1_000_000_000.0;
 
         this.frameListener.ifPresent(l -> l.onFrame(dt));
 

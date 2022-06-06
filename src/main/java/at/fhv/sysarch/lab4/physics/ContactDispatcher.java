@@ -15,13 +15,15 @@ public class ContactDispatcher extends ContactAdapter {
     private final Set<Ball> balls;
 
     private final BallStrikeListener strikeListener;
+    private final BallsCollidedListener collidedListener;
     private final BallPocketedListener pocketedListener;
 
-    public ContactDispatcher(Cue cue, Set<Ball> balls, BallStrikeListener strikeListener, BallPocketedListener pocketedListener) {
+    public ContactDispatcher(Cue cue, Set<Ball> balls, BallStrikeListener strikeListener, BallsCollidedListener collidedListener, BallPocketedListener pocketedListener) {
         this.cue = cue;
         this.balls = balls;
 
         this.strikeListener = strikeListener;
+        this.collidedListener = collidedListener;
         this.pocketedListener = pocketedListener;
     }
 
@@ -33,7 +35,24 @@ public class ContactDispatcher extends ContactAdapter {
         return Table.TablePart.POCKET.equals(fixture.getUserData());
     }
 
-    // called while objects touch
+
+    // called when objects first touch
+    // used to check for ball collisions
+    @Override
+    public boolean begin(ContactPoint point) {
+        var b1 = point.getBody1();
+        var b2 = point.getBody2();
+
+        balls.stream().filter(b -> b.getBody().equals(b1)).findAny().ifPresent(ball1 ->
+                balls.stream().filter(b -> b.getBody().equals(b2)).findAny().ifPresent(ball2 ->
+                        collidedListener.onBallsCollided(ball1, ball2)
+                )
+        );
+
+        return true;
+    }
+
+    // called multiple times while objects touch
     // used to detect pocketing balls if they overlap enough
     @Override
     public boolean persist(PersistedContactPoint point) {

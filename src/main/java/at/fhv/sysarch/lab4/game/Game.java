@@ -1,9 +1,6 @@
 package at.fhv.sysarch.lab4.game;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import at.fhv.sysarch.lab4.physics.BoundsDispatcher;
 import at.fhv.sysarch.lab4.physics.ContactDispatcher;
@@ -24,17 +21,18 @@ public class Game {
     private Vector2 dragCurrent = null;
 
     private boolean playerOne = true;
+    private final Table table;
 
     public Game(Renderer renderer) {
         this.renderer = renderer;
+
         this.world = new World();
-
         this.cue = new Cue();
-        this.cue.getBody().setActive(false);
-
-        this.initWorld();
+        this.table = new Table();
 
         this.renderer.setFrameListener(world::update);
+
+        this.initWorld();
     }
 
     public void onMousePressed(MouseEvent e) {
@@ -43,10 +41,8 @@ public class Game {
 
         dragStart = new Vector2(pX, pY);
 
-        var cb = this.renderer.getCue().getBody();
-        cb.setLinearVelocity(new Vector2());
-        cb.setAngularVelocity(0);
-        cb.setActive(false);
+        cue.deactivateCollision();
+        cue.stop();
     }
 
     public void onMouseDragged(MouseEvent e) {
@@ -55,13 +51,9 @@ public class Game {
 
         dragCurrent = new Vector2(pX, pY);
 
-        var dragVector = new Vector2(dragCurrent);
-        dragVector.subtract(dragStart);
+        var cueDirection = new Vector2(dragCurrent).subtract(dragStart).getDirection();
 
-        var cueTf = this.renderer.getCue().getBody().getTransform();
-
-        cueTf.setTranslation(dragStart);
-        cueTf.setRotation(dragVector.getDirection());
+        cue.setPosition(dragStart, cueDirection);
     }
 
     public void onMouseReleased(MouseEvent e) {
@@ -72,11 +64,15 @@ public class Game {
         var impulse = new Vector2(dragStart).subtract(dragCurrent).multiply(3);
         impulse.setMagnitude(Math.min(impulse.getMagnitude(), 3));
 
-        var cb = this.renderer.getCue().getBody();
-        cb.setLinearVelocity(impulse);
-        cb.setActive(true);
+        cue.activateCollision();
+        cue.setVelocity(impulse, 0);
 
         this.dragStart = this.dragCurrent = null;
+    }
+
+    private static void placeWhite(Ball b) {
+        b.setPosition(Table.Constants.WIDTH * 0.25, 0);
+        b.getBody().setLinearVelocity(0, 0);
     }
 
     private void placeBalls(List<Ball> balls) {
@@ -91,12 +87,17 @@ public class Game {
         double x0 = -Table.Constants.WIDTH * 0.25 - Ball.Constants.RADIUS;
 
         for (Ball b : balls) {
+
+            if(b.isWhite()) {
+                placeWhite(b);
+                continue;
+            }
+
             double y = y0 + (2 * Ball.Constants.RADIUS * row) + (col * Ball.Constants.RADIUS);
             double x = x0 + (2 * Ball.Constants.RADIUS * col);
 
             b.setPosition(x, y);
             b.getBody().setLinearVelocity(0, 0);
-            renderer.addBall(b);
 
             row++;
 
@@ -109,44 +110,28 @@ public class Game {
     }
 
     private void initWorld() {
-        this.world.setGravity(new Vector2());
+
+        this.world.setGravity(World.ZERO_GRAVITY);
         this.world.setBounds(new AxisAlignedBounds(10, 10));
 
-        List<Ball> regularBalls = new ArrayList<>();
-        
-        for (Ball b : Ball.values()) {
-            if (b == Ball.WHITE)
-                continue;
+        var balls = new ArrayList<>(List.of(Ball.values()));
+        placeBalls(balls);
 
-            regularBalls.add(b);
-        }
-
-        this.placeBalls(regularBalls);
-
-        resetWhite();
-        
-        renderer.addBall(Ball.WHITE);
-        
-        Table table = new Table();
+        balls.forEach(renderer::addBall);
         renderer.setTable(table);
-
         renderer.setCue(this.cue);
 
-        for (Ball b : Ball.values()) {
-            world.addBody(b.getBody());
-        }
+        balls.forEach(b -> world.addBody(b.getBody()));
         world.addBody(table.getBody());
         world.addBody(cue.getBody());
 
-        world.addListener(new ContactDispatcher(cue, Set.of(Ball.values()), this::onBallStrike, this::onBallPocketed));
+        world.addListener(new ContactDispatcher(cue, Set.of(Ball.values()), this::onBallStrike, this::onBallsCollided, this::onBallPocketed));
         world.addListener(new StepDispatcher(this::onObjectsRest));
         world.addListener(new BoundsDispatcher(cue, this::onCueMissed));
     }
 
 
-    private static void resetWhite() {
-        Ball.WHITE.setPosition(Table.Constants.WIDTH * 0.25, 0);
-    }
+
 
     private String currentPlayer() {
         return "Player " + (playerOne ? 1 : 2);
@@ -155,47 +140,73 @@ public class Game {
     private void onBallStrike(Ball b) {
         System.out.println(b + " hit");
 
-        var cb = this.cue.getBody();
-        cb.setLinearVelocity(new Vector2());
-        cb.setAngularVelocity(0);
-        cb.setActive(false);
+        cue.stop();
+        cue.deactivateCollision();
 
         if(!b.isWhite()) {
+            // todo foul
+
             renderer.setFoulMessage("Non-white ball struck!");
         }
-
-
         this.renderer.setActionMessage(b + " was struck by " + currentPlayer());
+    }
+
+    private void onCueMissed() {
+        System.out.println("cue missed");
+
+        cue.reset();
+    }
+
+    private void onBallsCollided(Ball a, Ball b) {
+        if(a.isWhite() || b.isWhite()) {
+            // todo not a foul
+        }
     }
 
     private void onBallPocketed(Ball b) {
         System.out.println(b + " pocketed");
 
         if(b.isWhite()) {
+            // todo foul
+
             renderer.setFoulMessage("White ball pocketed!");
             renderer.setActionMessage(currentPlayer() + " pocketed the white ball!");
-            resetWhite();
+
+            placeWhite(Ball.WHITE);
+
+            cue.reset();
+
+            playerOne ^= true;
+
         } else {
             world.removeBody(b.getBody());
             renderer.removeBall(b);
         }
-
-
     }
 
     private void onObjectsRest() {
         System.out.println("turn over");
 
+        // todo foul if white hit nothing
+
         playerOne ^= true;
 
         this.renderer.setStrikeMessage("Next strike: " + currentPlayer());
+
+        cue.reset();
     }
 
-    private void onCueMissed() {
-        var cb = this.cue.getBody();
-        cb.setActive(false);
-        cb.setLinearVelocity(new Vector2());
-        cb.getTransform().setTranslation(1, 0);
-        cb.getTransform().setRotation(0);
+    private void endTurn(int turnScore) {
+
+        if(playerOne) {
+            renderer.incrementPlayer1Score(turnScore);
+        } else {
+            renderer.incrementPlayer2Score(turnScore);
+        }
+
+
+        playerOne ^= true;
     }
+
+
 }

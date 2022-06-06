@@ -4,6 +4,7 @@ import org.dyn4j.dynamics.Body;
 import org.dyn4j.geometry.Geometry;
 import org.dyn4j.geometry.MassType;
 import org.dyn4j.geometry.Rectangle;
+import org.dyn4j.geometry.Vector2;
 
 public class Cue {
 
@@ -22,11 +23,12 @@ public class Cue {
         this.geometry.translate(Constants.LENGTH / 2, 0);
         this.body.addFixture(geometry);
 
-        this.body.getTransform().setTranslation(1, 0);
         this.body.setMass(MassType.INFINITE);
 
         var collisionFilter = new CollisionFilter();
         this.body.getFixtures().forEach(f -> f.setFilter(collisionFilter));
+
+        this.reset();
     }
 
     public Body getBody() {
@@ -37,9 +39,38 @@ public class Cue {
         return geometry;
     }
 
-    public static class Constants {
-        // SI units - meters, kg
+    public void stop() {
+        body.setLinearVelocity(0, 0);
+        body.setAngularVelocity(0);
+    }
 
+    public void activateCollision() {
+        body.setActive(true);
+    }
+
+    public void deactivateCollision() {
+        body.setActive(false);
+    }
+
+    public void reset() {
+        deactivateCollision();
+        stop();
+
+        setPosition(new Vector2(Table.Constants.WIDTH * .3, 0), 0);
+    }
+
+    public void setPosition(Vector2 tipPosition, double rotation) {
+        body.getTransform().setTranslation(tipPosition);
+        body.getTransform().setRotation(rotation);
+    }
+
+    public void setVelocity(Vector2 linear, double angular) {
+        body.setLinearVelocity(linear);
+        body.setAngularVelocity(angular);
+    }
+
+    public static class Constants {
+        // meters, kg
         public static final double LENGTH = 1.45;
         public static final double TIP_DIAMETER = 0.013;
         public static final double TIP_THICKNESS = 0.01;

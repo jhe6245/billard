@@ -2,8 +2,6 @@ package at.fhv.sysarch.lab4.physics;
 
 import org.dyn4j.dynamics.*;
 
-import java.util.stream.Collectors;
-
 public class StepDispatcher extends StepAdapter {
 
     private final ObjectsRestListener onObjectsRestListener;
