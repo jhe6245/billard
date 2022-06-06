@@ -1,17 +1,15 @@
-package at.fhv.sysarch.lab4.game;
+package at.fhv.sysarch.lab4.physics;
 
-import at.fhv.sysarch.lab4.physics.BallPocketedListener;
-import javafx.scene.control.Tab;
+import at.fhv.sysarch.lab4.game.Ball;
+import at.fhv.sysarch.lab4.game.Cue;
+import at.fhv.sysarch.lab4.game.Table;
 import org.dyn4j.collision.Fixture;
 import org.dyn4j.dynamics.Body;
-import org.dyn4j.dynamics.contact.ContactListener;
-import org.dyn4j.dynamics.contact.ContactPoint;
-import org.dyn4j.dynamics.contact.PersistedContactPoint;
-import org.dyn4j.dynamics.contact.SolvedContactPoint;
+import org.dyn4j.dynamics.contact.*;
 
 import java.util.Set;
 
-public class ContactDispatcher implements ContactListener {
+public class ContactDispatcher extends ContactAdapter {
 
     private final Cue cue;
     private final Set<Ball> balls;
@@ -72,13 +70,4 @@ public class ContactDispatcher implements ContactListener {
 
         return true;
     }
-
-    @Override
-    public void end(ContactPoint point) { }
-    @Override
-    public void sensed(ContactPoint point) { }
-    @Override
-    public boolean preSolve(ContactPoint point) { return true; }
-    @Override
-    public void postSolve(SolvedContactPoint point) { }
 }

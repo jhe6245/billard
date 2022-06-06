@@ -5,6 +5,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import at.fhv.sysarch.lab4.physics.ContactDispatcher;
+import at.fhv.sysarch.lab4.physics.ObjectsRestListener;
+import at.fhv.sysarch.lab4.physics.StepDispatcher;
 import at.fhv.sysarch.lab4.rendering.Renderer;
 import javafx.scene.input.MouseEvent;
 import org.dyn4j.dynamics.World;
@@ -142,6 +145,7 @@ public class Game {
         world.addBody(cue.getBody());
 
         world.addListener(new ContactDispatcher(cue, Set.of(Ball.values()), this::onBallStrike, this::onBallPocketed));
+        world.addListener(new StepDispatcher(this::onObjectsRest));
     }
 
 
@@ -165,10 +169,6 @@ public class Game {
 
 
         this.renderer.setActionMessage(b + " was struck by " + currentPlayer());
-
-        playerOne ^= true;
-
-        this.renderer.setStrikeMessage("Next strike: " + currentPlayer());
     }
 
     private void onBallPocketed(Ball b) {
@@ -184,5 +184,13 @@ public class Game {
         }
 
 
+    }
+
+    private void onObjectsRest() {
+        System.out.println("turn over");
+
+        playerOne ^= true;
+
+        this.renderer.setStrikeMessage("Next strike: " + currentPlayer());
     }
 }
