@@ -1,6 +1,7 @@
 package at.fhv.sysarch.lab4.game;
 
 import at.fhv.sysarch.lab4.physics.BallPocketedListener;
+import javafx.scene.control.Tab;
 import org.dyn4j.dynamics.contact.ContactListener;
 import org.dyn4j.dynamics.contact.ContactPoint;
 import org.dyn4j.dynamics.contact.PersistedContactPoint;
@@ -38,20 +39,34 @@ public class ContactDispatcher implements ContactListener {
         var b1 = point.getBody1();
         var b2 = point.getBody2();
 
+        var f1 = point.getFixture1();
+        var f2 = point.getFixture2();
+
         var struckBall = balls
                 .stream()
                 .filter(b -> b.getBody().equals(b1) || b.getBody().equals(b2)).findAny();
+
         if(struckBall.isEmpty())
             return true;
 
 
         if(cue.getBody().equals(b1) || cue.getBody().equals(b2)) {
+
             struckBall.ifPresent(strikeListener::onBallStrike);
         }
         else if((table.getBody().equals(b1) || table.getBody().equals(b2))) {
-            if(point.getDepth() > struckBall.get().getBody().getRotationDiscRadius())
-                if(Table.TablePart.POCKET.equals(point.getFixture1().getUserData()) || Table.TablePart.POCKET.equals(point.getFixture2().getUserData()))
+
+            var pocketMarker = Table.TablePart.POCKET;
+
+            if(pocketMarker.equals(f1.getUserData()) || pocketMarker.equals(f2.getUserData())) {
+
+                var ballRadius = struckBall.get().getBody().getRotationDiscRadius();
+
+                if(point.getDepth() > ballRadius) {
+
                     pocketedListener.onBallPocketed(struckBall.get());
+                }
+            }
         }
 
         return true;
