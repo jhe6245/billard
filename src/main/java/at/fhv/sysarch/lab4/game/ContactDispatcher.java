@@ -42,17 +42,18 @@ public class ContactDispatcher implements ContactListener {
         var f1 = point.getFixture1();
         var f2 = point.getFixture2();
 
-        var struckBall = balls
+        var struckBallO = balls
                 .stream()
                 .filter(b -> b.getBody().equals(b1) || b.getBody().equals(b2)).findAny();
 
-        if(struckBall.isEmpty())
+        if(struckBallO.isEmpty())
             return true;
 
+        var struckBall = struckBallO.get();
 
         if(cue.getBody().equals(b1) || cue.getBody().equals(b2)) {
 
-            struckBall.ifPresent(strikeListener::onBallStrike);
+            strikeListener.onBallStrike(struckBall);
         }
         else if((table.getBody().equals(b1) || table.getBody().equals(b2))) {
 
@@ -60,11 +61,11 @@ public class ContactDispatcher implements ContactListener {
 
             if(pocketMarker.equals(f1.getUserData()) || pocketMarker.equals(f2.getUserData())) {
 
-                var ballRadius = struckBall.get().getBody().getRotationDiscRadius();
+                var ballRadius = struckBall.getBody().getRotationDiscRadius();
 
                 if(point.getDepth() > ballRadius) {
 
-                    pocketedListener.onBallPocketed(struckBall.get());
+                    pocketedListener.onBallPocketed(struckBall);
                 }
             }
         }
