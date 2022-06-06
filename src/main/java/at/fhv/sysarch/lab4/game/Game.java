@@ -15,13 +15,17 @@ public class Game {
     private final World world;
     private final Renderer renderer;
 
+    private final Table table;
     private final Cue cue;
 
     private Vector2 dragStart = null;
     private Vector2 dragCurrent = null;
 
     private boolean playerOne = true;
-    private final Table table;
+
+    private Turn turn;
+    private Vector2 originalWhitePosition;
+
 
     public Game(Renderer renderer) {
         this.renderer = renderer;
@@ -33,6 +37,9 @@ public class Game {
         this.renderer.setFrameListener(world::update);
 
         this.initWorld();
+
+        this.turn = new Turn();
+        this.originalWhitePosition = Ball.WHITE.getPosition();
     }
 
     public void onMousePressed(MouseEvent e) {
@@ -130,9 +137,6 @@ public class Game {
         world.addListener(new BoundsDispatcher(cue, this::onCueMissed));
     }
 
-
-
-
     private String currentPlayer() {
         return "Player " + (playerOne ? 1 : 2);
     }
@@ -143,12 +147,7 @@ public class Game {
         cue.stop();
         cue.deactivateCollision();
 
-        if(!b.isWhite()) {
-            // todo foul
-
-            renderer.setFoulMessage("Non-white ball struck!");
-        }
-        this.renderer.setActionMessage(b + " was struck by " + currentPlayer());
+        turn.cueStrike(b);
     }
 
     private void onCueMissed() {
@@ -158,54 +157,52 @@ public class Game {
     }
 
     private void onBallsCollided(Ball a, Ball b) {
-        if(a.isWhite() || b.isWhite()) {
-            // todo not a foul
-        }
+        turn.ballCollision(a, b);
     }
 
     private void onBallPocketed(Ball b) {
         System.out.println(b + " pocketed");
 
-        if(b.isWhite()) {
-            // todo foul
+        turn.ballPocketed(b);
 
-            renderer.setFoulMessage("White ball pocketed!");
-            renderer.setActionMessage(currentPlayer() + " pocketed the white ball!");
 
-            placeWhite(Ball.WHITE);
-
-            cue.reset();
-
-            playerOne ^= true;
-
-        } else {
-            world.removeBody(b.getBody());
-            renderer.removeBall(b);
-        }
+        world.removeBody(b.getBody());
+        renderer.removeBall(b);
     }
 
     private void onObjectsRest() {
-        System.out.println("turn over");
+        System.out.println("at rest");
 
-        // todo foul if white hit nothing
-
-        playerOne ^= true;
-
-        this.renderer.setStrikeMessage("Next strike: " + currentPlayer());
-
-        cue.reset();
-    }
-
-    private void endTurn(int turnScore) {
-
-        if(playerOne) {
-            renderer.incrementPlayer1Score(turnScore);
-        } else {
-            renderer.incrementPlayer2Score(turnScore);
+        if(turn.isWhitePocketed()) {
+            Ball.WHITE.setPosition(originalWhitePosition.x, originalWhitePosition.y);
+            renderer.addBall(Ball.WHITE);
+            world.addBody(Ball.WHITE.getBody());
         }
 
+        if(turn.isFoul()) {
+            renderer.setFoulMessage(currentPlayer() + " fouled: " + turn.getFoulInformation());
+        } else {
+            renderer.setFoulMessage("");
+        }
+
+        renderer.setActionMessage(currentPlayer() + " " + turn.getMessage());
+
+        var score = turn.getScore();
+
+        if(playerOne) {
+            renderer.incrementPlayer1Score(score);
+        } else {
+            renderer.incrementPlayer2Score(score);
+        }
 
         playerOne ^= true;
+
+        renderer.setStrikeMessage("Next strike: " + currentPlayer());
+
+        cue.reset();
+
+        this.turn = new Turn();
+        this.originalWhitePosition = Ball.WHITE.getPosition();
     }
 
 

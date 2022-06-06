@@ -7,6 +7,7 @@ import org.dyn4j.geometry.Geometry;
 import org.dyn4j.geometry.MassType;
 
 import javafx.scene.paint.Color;
+import org.dyn4j.geometry.Vector2;
 
 public enum Ball {
     ONE(Color.YELLOW, true),
@@ -41,6 +42,10 @@ public enum Ball {
 
     public boolean isSolid() {
         return this.solid; 
+    }
+
+    public Vector2 getPosition() {
+        return this.body.getTransform().getTranslation();
     }
 
     public void setPosition(double x, double y) {

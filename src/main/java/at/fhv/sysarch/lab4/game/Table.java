@@ -29,6 +29,7 @@ public class Table {
         this.tableBody = new Body();
         this.tableBody.translate(0, 0);
         this.tableBody.setMass(MassType.INFINITE);
+        this.tableBody.setUserData(this);
 
         this.createCushions();
         this.createPockets();

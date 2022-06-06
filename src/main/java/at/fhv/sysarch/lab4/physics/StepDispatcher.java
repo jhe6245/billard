@@ -1,5 +1,6 @@
 package at.fhv.sysarch.lab4.physics;
 
+import at.fhv.sysarch.lab4.game.Ball;
 import org.dyn4j.dynamics.*;
 
 public class StepDispatcher extends StepAdapter {
@@ -15,8 +16,9 @@ public class StepDispatcher extends StepAdapter {
     @Override
     public void end(Step step, World world) {
 
-        var objectsAtRest = world.getBodies().stream()
-                .filter(Body::isActive)
+        var objectsAtRest =  world.getBodies()
+                .stream()
+                .filter(b -> b.getUserData() instanceof Ball)
                 .allMatch(Body::isAsleep);
 
         // var moving = world.getBodies().stream().filter(Body::isActive).filter(b -> !b.isAsleep()).collect(Collectors.toList());

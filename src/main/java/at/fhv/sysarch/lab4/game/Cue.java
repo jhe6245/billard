@@ -40,8 +40,7 @@ public class Cue {
     }
 
     public void stop() {
-        body.setLinearVelocity(0, 0);
-        body.setAngularVelocity(0);
+        setVelocity(new Vector2(), 0);
     }
 
     public void activateCollision() {
