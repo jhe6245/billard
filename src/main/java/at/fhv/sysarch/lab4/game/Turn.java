@@ -55,14 +55,14 @@ public class Turn {
     }
 
     public String getFoulInformation() {
-        if(missed) {
-            return "white ball hit nothing";
-        }
         if(struckNonWhite) {
             return "struck an object ball";
         }
         if(pocketedWhite) {
             return "pocketed the white ball";
+        }
+        if(missed) {
+            return "white ball hit nothing";
         }
         return null;
     }

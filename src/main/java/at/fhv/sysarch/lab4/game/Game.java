@@ -174,7 +174,10 @@ public class Game {
         System.out.println("at rest");
 
         if(turn.isWhitePocketed()) {
+
             Ball.WHITE.setPosition(originalWhitePosition.x, originalWhitePosition.y);
+            Ball.WHITE.getBody().setLinearVelocity(0, 0);
+
             renderer.addBall(Ball.WHITE);
             world.addBody(Ball.WHITE.getBody());
         }
