@@ -91,7 +91,7 @@ public class Turn {
             case -1:
                 return player + " fouled";
             case 0:
-                return player + " neutral turn";
+                return player + " played a neutral turn";
             case 1:
                 return player + " scored " + score + " point(s)";
         }
@@ -101,7 +101,7 @@ public class Turn {
 
     public String getFoulInformation() {
         if(struckNonWhite) {
-            return player + " struck an object ball";
+            return player + " struck an object (non-white) ball";
         }
         if(pocketedWhite) {
             return player + " pocketed the white ball";

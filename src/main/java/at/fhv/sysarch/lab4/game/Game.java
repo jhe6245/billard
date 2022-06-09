@@ -35,6 +35,7 @@ public class Game {
         this.initWorld();
 
         this.turn = new Turn(Player.PLAYER_ONE, Ball.WHITE.getPosition());
+        this.renderer.setStrikeMessage("Next player: " + this.turn.getPlayer());
     }
 
     private void initWorld() {
@@ -136,6 +137,8 @@ public class Game {
     private void onCueBallContact(Ball b) {
         if(!turn.canStrike())
             return;
+
+        renderer.setStrikeMessage("Waiting for balls to settle...");
 
         cue.stop();
         cue.deactivateCollision();

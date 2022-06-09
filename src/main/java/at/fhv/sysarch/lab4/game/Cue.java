@@ -70,12 +70,10 @@ public class Cue {
         setPosition(new Vector2(Table.Constants.WIDTH * .3, 0), 0);
     }
 
-
-
     public static class Constants {
         // meters, kg
         public static final double LENGTH = 1.45;
         public static final double TIP_DIAMETER = 0.013;
-        public static final double TIP_THICKNESS = 0.01;
+        public static final double TIP_THICKNESS = 0.005;
     }
 }
