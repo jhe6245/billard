@@ -181,11 +181,12 @@ public class Game {
 
         var pocketedObjectBalls = Arrays.stream(Ball.values())
                 .filter(b -> b != Ball.WHITE)
-                .filter(b -> world.getBodies().stream().map(Body::getUserData).noneMatch(d -> d == b))
+                .filter(b -> !b.getBody().isActive())
                 .collect(Collectors.toList());
 
         if(pocketedObjectBalls.size() >= 14) {
             placeBalls(pocketedObjectBalls);
+            pocketedObjectBalls.forEach(b -> b.getBody().setActive(true));
         }
 
         if(turn.isWhitePocketed()) {
