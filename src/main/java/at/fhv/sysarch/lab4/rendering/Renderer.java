@@ -220,7 +220,7 @@ public class Renderer extends AnimationTimer {
             // NOTE center of phyics circle is in the center
             // but javafx draws ovals from top left corner
 
-            this.gc.setFill(b.getColor());
+            this.gc.setFill(b.getBody().isActive() ? b.getColor() : Color.GRAY);
             this.gc.fillOval(-r, -r, d, d);
             
             if (b.isWhite()) {

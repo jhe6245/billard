@@ -1,13 +1,15 @@
 package at.fhv.sysarch.lab4.game;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
-import at.fhv.sysarch.lab4.physics.BoundsDispatcher;
-import at.fhv.sysarch.lab4.physics.ContactDispatcher;
-import at.fhv.sysarch.lab4.physics.StepDispatcher;
+import at.fhv.sysarch.lab4.physics.dispatchers.BoundsDispatcher;
+import at.fhv.sysarch.lab4.physics.dispatchers.ContactDispatcher;
+import at.fhv.sysarch.lab4.physics.dispatchers.StepDispatcher;
 import at.fhv.sysarch.lab4.rendering.Renderer;
 import javafx.scene.input.MouseEvent;
 import org.dyn4j.collision.AxisAlignedBounds;
+import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.World;
 import org.dyn4j.geometry.Vector2;
 
@@ -20,11 +22,7 @@ public class Game {
 
     private Vector2 dragStart = null;
     private Vector2 dragCurrent = null;
-
-    private boolean playerOne = true;
-
     private Turn turn;
-    private Vector2 originalWhitePosition;
 
 
     public Game(Renderer renderer) {
@@ -38,11 +36,13 @@ public class Game {
 
         this.initWorld();
 
-        this.turn = new Turn();
-        this.originalWhitePosition = Ball.WHITE.getPosition();
+        this.turn = new Turn(Player.PLAYER_ONE, Ball.WHITE.getPosition());
     }
 
     public void onMousePressed(MouseEvent e) {
+        if(!turn.canStrike())
+            return;
+
         double pX = this.renderer.screenToPhysicsX(e.getX());
         double pY = this.renderer.screenToPhysicsY(e.getY());
 
@@ -53,6 +53,9 @@ public class Game {
     }
 
     public void onMouseDragged(MouseEvent e) {
+        if(!turn.canStrike() || dragStart == null)
+            return;
+
         double pX = this.renderer.screenToPhysicsX(e.getX());
         double pY = this.renderer.screenToPhysicsY(e.getY());
 
@@ -65,7 +68,7 @@ public class Game {
 
     public void onMouseReleased(MouseEvent e) {
 
-        if(this.dragStart == null || this.dragCurrent == null)
+        if(!turn.canStrike() || this.dragStart == null || this.dragCurrent == null)
             return;
 
         var impulse = new Vector2(dragStart).subtract(dragCurrent).multiply(3);
@@ -132,16 +135,18 @@ public class Game {
         world.addBody(table.getBody());
         world.addBody(cue.getBody());
 
-        world.addListener(new ContactDispatcher(cue, Set.of(Ball.values()), this::onBallStrike, this::onBallsCollided, this::onBallPocketed));
+        world.getBodies().forEach(b -> b.setAsleep(true));
+
+        world.addListener(new ContactDispatcher(cue, Set.of(Ball.values()), this::onCueBallContact, this::onBallsCollided, this::onBallPocketed));
         world.addListener(new StepDispatcher(this::onObjectsRest));
         world.addListener(new BoundsDispatcher(cue, this::onCueMissed));
     }
 
-    private String currentPlayer() {
-        return "Player " + (playerOne ? 1 : 2);
-    }
+    private void onCueBallContact(Ball b) {
+        if(!turn.canStrike()) {
+            return;
+        }
 
-    private void onBallStrike(Ball b) {
         System.out.println(b + " hit");
 
         cue.stop();
@@ -165,47 +170,59 @@ public class Game {
 
         turn.ballPocketed(b);
 
+        b.getBody().setActive(false);
 
-        world.removeBody(b.getBody());
-        renderer.removeBall(b);
+        //world.removeBody(b.getBody());
+        //renderer.removeBall(b);
     }
 
     private void onObjectsRest() {
         System.out.println("at rest");
 
+        var pocketedObjectBalls = Arrays.stream(Ball.values())
+                .filter(b -> b != Ball.WHITE)
+                .filter(b -> world.getBodies().stream().map(Body::getUserData).noneMatch(d -> d == b))
+                .collect(Collectors.toList());
+
+        if(pocketedObjectBalls.size() >= 14) {
+            placeBalls(pocketedObjectBalls);
+            for (Ball pocketedObjectBall : pocketedObjectBalls) {
+                //renderer.addBall(pocketedObjectBall);
+                //world.addBody(pocketedObjectBall.getBody());
+            }
+        }
+
         if(turn.isWhitePocketed()) {
 
-            Ball.WHITE.setPosition(originalWhitePosition.x, originalWhitePosition.y);
+            Ball.WHITE.setPosition(turn.getWhiteBallInitialPosition().x, turn.getWhiteBallInitialPosition().y);
             Ball.WHITE.getBody().setLinearVelocity(0, 0);
 
-            renderer.addBall(Ball.WHITE);
-            world.addBody(Ball.WHITE.getBody());
+            Ball.WHITE.getBody().setActive(true);
+            //renderer.addBall(Ball.WHITE);
+            //world.addBody(Ball.WHITE.getBody());
         }
 
         if(turn.isFoul()) {
-            renderer.setFoulMessage(currentPlayer() + " fouled: " + turn.getFoulInformation());
+            renderer.setFoulMessage(turn.getPlayer() + " fouled: " + turn.getFoulInformation());
         } else {
             renderer.setFoulMessage("");
         }
 
-        renderer.setActionMessage(currentPlayer() + " " + turn.getMessage());
+        renderer.setActionMessage(turn.getPlayer() + " " + turn.getMessage());
 
         var score = turn.getScore();
 
-        if(playerOne) {
+        if(turn.getPlayer() == Player.PLAYER_ONE) {
             renderer.incrementPlayer1Score(score);
         } else {
             renderer.incrementPlayer2Score(score);
         }
 
-        playerOne ^= true;
-
-        renderer.setStrikeMessage("Next strike: " + currentPlayer());
+        renderer.setStrikeMessage("Next strike: " + turn.getNextPlayer());
 
         cue.reset();
 
-        this.turn = new Turn();
-        this.originalWhitePosition = Ball.WHITE.getPosition();
+        this.turn = new Turn(turn.getNextPlayer(), Ball.WHITE.getPosition());
     }
 
 

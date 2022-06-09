@@ -1,6 +1,7 @@
-package at.fhv.sysarch.lab4.physics;
+package at.fhv.sysarch.lab4.physics.dispatchers;
 
 import at.fhv.sysarch.lab4.game.Ball;
+import at.fhv.sysarch.lab4.physics.ObjectsRestListener;
 import org.dyn4j.dynamics.*;
 
 public class StepDispatcher extends StepAdapter {

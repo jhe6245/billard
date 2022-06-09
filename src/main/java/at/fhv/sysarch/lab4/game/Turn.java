@@ -1,20 +1,47 @@
 package at.fhv.sysarch.lab4.game;
 
+import org.dyn4j.geometry.Vector2;
+
 public class Turn {
 
+    private final Player player;
+    private final Vector2 whiteBallInitialPosition;
     private boolean missed = true;
     private boolean struckNonWhite = false;
     private boolean pocketedWhite = false;
     private int pocketed = 0;
+    private boolean struckAny = false;
+
+    public Turn(Player player, Vector2 whiteBallInitialPosition) {
+        this.player = player;
+        this.whiteBallInitialPosition = whiteBallInitialPosition;
+    }
+
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    public Player getNextPlayer() {
+        return player == Player.PLAYER_ONE ? Player.PLAYER_TWO : Player.PLAYER_ONE;
+    }
 
     public boolean isWhitePocketed() {
         return pocketedWhite;
     }
 
     public void cueStrike(Ball b) {
+        if(struckAny)
+            throw new RuntimeException("hit twice");
+
+        struckAny = true;
         if(!b.isWhite()) {
             struckNonWhite = true;
         }
+    }
+
+    public boolean canStrike() {
+        return !struckAny;
     }
 
     public void ballCollision(Ball a, Ball b) {
@@ -35,6 +62,8 @@ public class Turn {
             pocketed++;
         }
     }
+
+
 
     public boolean isFoul() {
         return missed || struckNonWhite || pocketedWhite;
@@ -65,6 +94,10 @@ public class Turn {
             return "white ball hit nothing";
         }
         return null;
+    }
+
+    public Vector2 getWhiteBallInitialPosition() {
+        return whiteBallInitialPosition;
     }
 
 }

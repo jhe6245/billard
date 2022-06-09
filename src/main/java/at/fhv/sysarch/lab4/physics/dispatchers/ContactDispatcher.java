@@ -1,8 +1,11 @@
-package at.fhv.sysarch.lab4.physics;
+package at.fhv.sysarch.lab4.physics.dispatchers;
 
 import at.fhv.sysarch.lab4.game.Ball;
 import at.fhv.sysarch.lab4.game.Cue;
 import at.fhv.sysarch.lab4.game.Table;
+import at.fhv.sysarch.lab4.physics.BallPocketedListener;
+import at.fhv.sysarch.lab4.physics.BallsCollidedListener;
+import at.fhv.sysarch.lab4.physics.CueBallContactListener;
 import org.dyn4j.collision.Fixture;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.contact.*;
@@ -14,11 +17,11 @@ public class ContactDispatcher extends ContactAdapter {
     private final Cue cue;
     private final Set<Ball> balls;
 
-    private final BallStrikeListener strikeListener;
+    private final CueBallContactListener strikeListener;
     private final BallsCollidedListener collidedListener;
     private final BallPocketedListener pocketedListener;
 
-    public ContactDispatcher(Cue cue, Set<Ball> balls, BallStrikeListener strikeListener, BallsCollidedListener collidedListener, BallPocketedListener pocketedListener) {
+    public ContactDispatcher(Cue cue, Set<Ball> balls, CueBallContactListener strikeListener, BallsCollidedListener collidedListener, BallPocketedListener pocketedListener) {
         this.cue = cue;
         this.balls = balls;
 
@@ -54,10 +57,19 @@ public class ContactDispatcher extends ContactAdapter {
 
     // called multiple times while objects touch
     // used to detect pocketing balls if they overlap enough
+    // also for cue strike so the cue can't keep travelling along with the ball
     @Override
     public boolean persist(PersistedContactPoint point) {
         var b1 = point.getBody1();
         var b2 = point.getBody2();
+
+        if(isCue(b1) || isCue(b2)) {
+            balls.stream()
+                    .filter(b -> b.getBody().equals(b1) || b.getBody().equals(b2))
+                    .findAny()
+                    .ifPresent(strikeListener::onCueBallContact);
+            return true;
+        }
 
         var f1 = point.getFixture1();
         var f2 = point.getFixture2();
@@ -94,7 +106,7 @@ public class ContactDispatcher extends ContactAdapter {
             balls.stream()
                     .filter(b -> b.getBody().equals(b1) || b.getBody().equals(b2))
                     .findAny()
-                    .ifPresent(strikeListener::onBallStrike);
+                    .ifPresent(strikeListener::onCueBallContact);
         }
     }
 }

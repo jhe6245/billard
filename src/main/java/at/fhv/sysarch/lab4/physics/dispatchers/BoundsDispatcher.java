@@ -1,6 +1,7 @@
-package at.fhv.sysarch.lab4.physics;
+package at.fhv.sysarch.lab4.physics.dispatchers;
 
 import at.fhv.sysarch.lab4.game.Cue;
+import at.fhv.sysarch.lab4.physics.CueMissedListener;
 import org.dyn4j.collision.BoundsAdapter;
 import org.dyn4j.collision.Collidable;
 import org.dyn4j.collision.Fixture;

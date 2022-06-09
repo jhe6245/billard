@@ -45,6 +45,7 @@ public class Cue {
 
     public void activateCollision() {
         body.setActive(true);
+        body.setAsleep(false);
     }
 
     public void deactivateCollision() {
