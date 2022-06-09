@@ -57,7 +57,7 @@ public class ContactDispatcher extends ContactAdapter {
 
     // called multiple times while objects touch
     // used to detect pocketing balls if they overlap enough
-    // also for cue strike so the cue can't keep travelling along with the ball
+    // also for cue strike so the cue can't keep travelling along with the ball (if only contact end is checked)
     @Override
     public boolean persist(PersistedContactPoint point) {
         var b1 = point.getBody1();
