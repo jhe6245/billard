@@ -73,6 +73,7 @@ public class Game {
         for (Ball b : balls) {
 
             b.getBody().setLinearVelocity(0, 0);
+            b.getBody().clearAccumulatedForce();
 
             if(b.isWhite()) {
                 b.setPosition(Table.Constants.WIDTH * 0.25, 0);
@@ -105,6 +106,10 @@ public class Game {
 
         cue.deactivateCollision();
         cue.stop();
+
+        renderer.setStrikeMessage(turn.getPlayer() + " playing...");
+        renderer.setActionMessage("");
+        renderer.setFoulMessage("");
     }
 
     public void onMouseDragged(MouseEvent e) {
@@ -137,8 +142,6 @@ public class Game {
     private void onCueBallContact(Ball b) {
         if(!turn.canStrike())
             return;
-
-        renderer.setStrikeMessage("Waiting for balls to settle...");
 
         cue.stop();
         cue.deactivateCollision();
@@ -179,6 +182,7 @@ public class Game {
 
             Ball.WHITE.setPosition(turn.getWhiteBallInitialPosition().x, turn.getWhiteBallInitialPosition().y);
             Ball.WHITE.getBody().setLinearVelocity(0, 0);
+            Ball.WHITE.getBody().clearAccumulatedForce();
             Ball.WHITE.getBody().setActive(true);
         }
 
