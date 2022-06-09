@@ -86,14 +86,6 @@ public class Renderer extends AnimationTimer {
         this.foulMessage = foulMessage;
     }
 
-    public void setPlayer1Score(int player1Score) {
-        this.player1Score = player1Score;
-    }
-
-    public void setPlayer2Score(int player2Score) {
-        this.player2Score = player2Score;
-    }
-
     public void incrementPlayer1Score(int delta) {
         this.player1Score += delta;
     }
@@ -106,20 +98,12 @@ public class Renderer extends AnimationTimer {
         this.balls.add(b);
     }
 
-    public void removeBall(Ball b) {
-        this.balls.remove(b);
-    }
-
     public void setTable(Table t) {
         this.table = t;
     }
 
     public void setCue(Cue c) {
         this.cue = c;
-    }
-
-    public Cue getCue() {
-        return cue;
     }
 
     public void setFrameListener(FrameListener l) {
@@ -374,7 +358,7 @@ public class Renderer extends AnimationTimer {
 
         this.gc.setTransform(pocketTrans);
 
-        // center of phyics circle is in the center
+        // center of physics circle is in the center
         // javafx draws ovals from top left corner
         this.gc.fillOval(-r, -r, d, d);
     }
