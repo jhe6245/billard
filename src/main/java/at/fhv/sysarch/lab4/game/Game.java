@@ -171,12 +171,12 @@ public class Game {
         turn.ballPocketed(b);
 
         b.getBody().setActive(false);
-
-        //world.removeBody(b.getBody());
-        //renderer.removeBall(b);
     }
 
     private void onObjectsRest() {
+        if(turn.canStrike())
+            return;
+
         System.out.println("at rest");
 
         var pocketedObjectBalls = Arrays.stream(Ball.values())
@@ -186,10 +186,6 @@ public class Game {
 
         if(pocketedObjectBalls.size() >= 14) {
             placeBalls(pocketedObjectBalls);
-            for (Ball pocketedObjectBall : pocketedObjectBalls) {
-                //renderer.addBall(pocketedObjectBall);
-                //world.addBody(pocketedObjectBall.getBody());
-            }
         }
 
         if(turn.isWhitePocketed()) {
@@ -198,8 +194,6 @@ public class Game {
             Ball.WHITE.getBody().setLinearVelocity(0, 0);
 
             Ball.WHITE.getBody().setActive(true);
-            //renderer.addBall(Ball.WHITE);
-            //world.addBody(Ball.WHITE.getBody());
         }
 
         if(turn.isFoul()) {

@@ -20,6 +20,7 @@ public class StepDispatcher extends StepAdapter {
         var objectsAtRest =  world.getBodies()
                 .stream()
                 .filter(b -> b.getUserData() instanceof Ball)
+                .filter(Body::isActive)
                 .allMatch(Body::isAsleep);
 
         // var moving = world.getBodies().stream().filter(Body::isActive).filter(b -> !b.isAsleep()).collect(Collectors.toList());
