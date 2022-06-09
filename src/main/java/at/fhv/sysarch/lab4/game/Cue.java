@@ -23,6 +23,8 @@ public class Cue {
         this.geometry.translate(Constants.LENGTH / 2, 0);
         this.body.addFixture(geometry);
 
+        // mass is infinite because striking the ball with the cue is not the same as throwing the cue at it.
+        // this way the ball just takes on the same velocity as the cue when hit
         this.body.setMass(MassType.INFINITE);
 
         var collisionFilter = new CollisionFilter();
@@ -39,13 +41,22 @@ public class Cue {
         return geometry;
     }
 
+    public void setPosition(Vector2 tipPosition, double rotation) {
+        body.getTransform().setTranslation(tipPosition);
+        body.getTransform().setRotation(rotation);
+    }
+
+    public void setVelocity(Vector2 linear, double angular) {
+        body.setLinearVelocity(linear);
+        body.setAngularVelocity(angular);
+    }
+
     public void stop() {
         setVelocity(new Vector2(), 0);
     }
 
     public void activateCollision() {
         body.setActive(true);
-        body.setAsleep(false);
     }
 
     public void deactivateCollision() {
@@ -59,15 +70,7 @@ public class Cue {
         setPosition(new Vector2(Table.Constants.WIDTH * .3, 0), 0);
     }
 
-    public void setPosition(Vector2 tipPosition, double rotation) {
-        body.getTransform().setTranslation(tipPosition);
-        body.getTransform().setRotation(rotation);
-    }
 
-    public void setVelocity(Vector2 linear, double angular) {
-        body.setLinearVelocity(linear);
-        body.setAngularVelocity(angular);
-    }
 
     public static class Constants {
         // meters, kg

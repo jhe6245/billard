@@ -16,7 +16,6 @@ public class Table {
     // table collides with balls but not with cue
     public static class CollisionFilter extends Ball.CollisionFilter { }
 
-
     private final Body tableBody;
 
     public enum TablePart {

@@ -1,32 +1,30 @@
 package at.fhv.sysarch.lab4.physics.dispatchers;
 
 import at.fhv.sysarch.lab4.game.Ball;
-import at.fhv.sysarch.lab4.physics.ObjectsRestListener;
+import at.fhv.sysarch.lab4.physics.BallsSettledListener;
 import org.dyn4j.dynamics.*;
 
 public class StepDispatcher extends StepAdapter {
 
-    private final ObjectsRestListener onObjectsRestListener;
+    private final BallsSettledListener onBallsSettledListener;
 
     private boolean atRestLastStep = true;
 
-    public StepDispatcher(ObjectsRestListener onObjectsRestListener) {
-        this.onObjectsRestListener = onObjectsRestListener;
+    public StepDispatcher(BallsSettledListener settledListener) {
+        this.onBallsSettledListener = settledListener;
     }
 
     @Override
     public void end(Step step, World world) {
 
-        var objectsAtRest =  world.getBodies()
+        boolean objectsAtRest =  world.getBodies()
                 .stream()
                 .filter(b -> b.getUserData() instanceof Ball)
                 .filter(Body::isActive)
                 .allMatch(Body::isAsleep);
 
-        // var moving = world.getBodies().stream().filter(Body::isActive).filter(b -> !b.isAsleep()).collect(Collectors.toList());
-
         if(objectsAtRest && !atRestLastStep) {
-            onObjectsRestListener.onObjectsAtRest();
+            onBallsSettledListener.onBallsSettled();
         }
 
         atRestLastStep = objectsAtRest;

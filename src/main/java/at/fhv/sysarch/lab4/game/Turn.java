@@ -2,13 +2,17 @@ package at.fhv.sysarch.lab4.game;
 
 import org.dyn4j.geometry.Vector2;
 
+// turn holds the state of each time a player strikes the ball
+// (NOT each time players are switched, it is a new turn each time the cue hits anything and the balls settle)
 public class Turn {
 
     private final Player player;
     private final Vector2 whiteBallInitialPosition;
-    private boolean missed = true;
+
+    private boolean struckWhiteButMissed = true; // hitting nothing with the cue is not considered a foul
     private boolean struckNonWhite = false;
     private boolean pocketedWhite = false;
+
     private int pocketed = 0;
     private boolean struckAny = false;
 
@@ -17,12 +21,19 @@ public class Turn {
         this.whiteBallInitialPosition = whiteBallInitialPosition;
     }
 
-
     public Player getPlayer() {
         return player;
     }
 
+    public Vector2 getWhiteBallInitialPosition() {
+        return whiteBallInitialPosition;
+    }
+
     public Player getNextPlayer() {
+
+        if (getScore() > 0)
+            return player;
+
         return player == Player.PLAYER_ONE ? Player.PLAYER_TWO : Player.PLAYER_ONE;
     }
 
@@ -50,7 +61,7 @@ public class Turn {
         }
 
         if(a.isWhite() || b.isWhite()) {
-            missed = false;
+            struckWhiteButMissed = false;
         }
     }
 
@@ -64,9 +75,8 @@ public class Turn {
     }
 
 
-
     public boolean isFoul() {
-        return missed || struckNonWhite || pocketedWhite;
+        return struckWhiteButMissed || struckNonWhite || pocketedWhite;
     }
 
     public int getScore() {
@@ -74,30 +84,31 @@ public class Turn {
     }
 
     public String getMessage() {
-        if(isFoul()) {
-            return "fouled";
+
+        int score = getScore();
+
+        switch (Integer.signum(score)) {
+            case -1:
+                return player + " fouled";
+            case 0:
+                return player + " neutral turn";
+            case 1:
+                return player + " scored " + score + " point(s)";
         }
-        if(pocketed == 0) {
-            return "neutral turn";
-        }
-        return "scored " + pocketed;
+
+        return "";
     }
 
     public String getFoulInformation() {
         if(struckNonWhite) {
-            return "struck an object ball";
+            return player + " struck an object ball";
         }
         if(pocketedWhite) {
-            return "pocketed the white ball";
+            return player + " pocketed the white ball";
         }
-        if(missed) {
-            return "white ball hit nothing";
+        if(struckWhiteButMissed) {
+            return player + " missed with the white ball";
         }
-        return null;
+        return "";
     }
-
-    public Vector2 getWhiteBallInitialPosition() {
-        return whiteBallInitialPosition;
-    }
-
 }

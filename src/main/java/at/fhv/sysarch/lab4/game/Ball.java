@@ -31,10 +31,10 @@ public enum Ball {
     // balls collide with cue and table
     public static class CollisionFilter extends TypeFilter { }
 
-    private Color c;
-    private boolean solid;
+    private final Color c;
+    private final boolean solid;
 
-    private Body body;
+    private final Body body;
 
     public Color getColor() { 
         return this.c; 

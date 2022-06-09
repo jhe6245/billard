@@ -3,27 +3,25 @@ package at.fhv.sysarch.lab4.game;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import at.fhv.sysarch.lab4.physics.dispatchers.BoundsDispatcher;
-import at.fhv.sysarch.lab4.physics.dispatchers.ContactDispatcher;
-import at.fhv.sysarch.lab4.physics.dispatchers.StepDispatcher;
+import at.fhv.sysarch.lab4.physics.dispatchers.*;
 import at.fhv.sysarch.lab4.rendering.Renderer;
 import javafx.scene.input.MouseEvent;
 import org.dyn4j.collision.AxisAlignedBounds;
-import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.World;
 import org.dyn4j.geometry.Vector2;
 
 public class Game {
-    private final World world;
     private final Renderer renderer;
+
+    private final World world;
 
     private final Table table;
     private final Cue cue;
 
     private Vector2 dragStart = null;
     private Vector2 dragCurrent = null;
-    private Turn turn;
 
+    private Turn turn;
 
     public Game(Renderer renderer) {
         this.renderer = renderer;
@@ -37,6 +35,62 @@ public class Game {
         this.initWorld();
 
         this.turn = new Turn(Player.PLAYER_ONE, Ball.WHITE.getPosition());
+    }
+
+    private void initWorld() {
+
+        this.world.setGravity(World.ZERO_GRAVITY);
+        this.world.setBounds(new AxisAlignedBounds(10, 10));
+
+        var balls = new ArrayList<>(List.of(Ball.values()));
+        placeBalls(balls);
+
+        balls.forEach(renderer::addBall);
+        renderer.setTable(table);
+        renderer.setCue(cue);
+
+        balls.forEach(b -> world.addBody(b.getBody()));
+        world.addBody(table.getBody());
+        world.addBody(cue.getBody());
+
+        world.addListener(new ContactDispatcher(cue, Set.of(Ball.values()), this::onCueBallContact, this::onBallsCollided, this::onBallPocketed));
+        world.addListener(new StepDispatcher(this::onObjectsRest));
+        world.addListener(new BoundsDispatcher(cue, this::onCueMissed));
+    }
+
+    private void placeBalls(List<Ball> balls) {
+        Collections.shuffle(balls);
+
+        // positioning the billiard balls IN WORLD COORDINATES: meters
+        int row = 0;
+        int col = 0;
+        int colSize = 5;
+
+        double y0 = -2*Ball.Constants.RADIUS*2;
+        double x0 = -Table.Constants.WIDTH * 0.25 - Ball.Constants.RADIUS;
+
+        for (Ball b : balls) {
+
+            b.getBody().setLinearVelocity(0, 0);
+
+            if(b.isWhite()) {
+                b.setPosition(Table.Constants.WIDTH * 0.25, 0);
+                continue;
+            }
+
+            double y = y0 + (2 * Ball.Constants.RADIUS * row) + (col * Ball.Constants.RADIUS);
+            double x = x0 + (2 * Ball.Constants.RADIUS * col);
+
+            b.setPosition(x, y);
+
+            row++;
+
+            if (row == colSize) {
+                row = 0;
+                col++;
+                colSize--;
+            }
+        }
     }
 
     public void onMousePressed(MouseEvent e) {
@@ -67,7 +121,6 @@ public class Game {
     }
 
     public void onMouseReleased(MouseEvent e) {
-
         if(!turn.canStrike() || this.dragStart == null || this.dragCurrent == null)
             return;
 
@@ -80,74 +133,9 @@ public class Game {
         this.dragStart = this.dragCurrent = null;
     }
 
-    private static void placeWhite(Ball b) {
-        b.setPosition(Table.Constants.WIDTH * 0.25, 0);
-        b.getBody().setLinearVelocity(0, 0);
-    }
-
-    private void placeBalls(List<Ball> balls) {
-        Collections.shuffle(balls);
-
-        // positioning the billiard balls IN WORLD COORDINATES: meters
-        int row = 0;
-        int col = 0;
-        int colSize = 5;
-
-        double y0 = -2*Ball.Constants.RADIUS*2;
-        double x0 = -Table.Constants.WIDTH * 0.25 - Ball.Constants.RADIUS;
-
-        for (Ball b : balls) {
-
-            if(b.isWhite()) {
-                placeWhite(b);
-                continue;
-            }
-
-            double y = y0 + (2 * Ball.Constants.RADIUS * row) + (col * Ball.Constants.RADIUS);
-            double x = x0 + (2 * Ball.Constants.RADIUS * col);
-
-            b.setPosition(x, y);
-            b.getBody().setLinearVelocity(0, 0);
-
-            row++;
-
-            if (row == colSize) {
-                row = 0;
-                col++;
-                colSize--;
-            }
-        }
-    }
-
-    private void initWorld() {
-
-        this.world.setGravity(World.ZERO_GRAVITY);
-        this.world.setBounds(new AxisAlignedBounds(10, 10));
-
-        var balls = new ArrayList<>(List.of(Ball.values()));
-        placeBalls(balls);
-
-        balls.forEach(renderer::addBall);
-        renderer.setTable(table);
-        renderer.setCue(this.cue);
-
-        balls.forEach(b -> world.addBody(b.getBody()));
-        world.addBody(table.getBody());
-        world.addBody(cue.getBody());
-
-        world.getBodies().forEach(b -> b.setAsleep(true));
-
-        world.addListener(new ContactDispatcher(cue, Set.of(Ball.values()), this::onCueBallContact, this::onBallsCollided, this::onBallPocketed));
-        world.addListener(new StepDispatcher(this::onObjectsRest));
-        world.addListener(new BoundsDispatcher(cue, this::onCueMissed));
-    }
-
     private void onCueBallContact(Ball b) {
-        if(!turn.canStrike()) {
+        if(!turn.canStrike())
             return;
-        }
-
-        System.out.println(b + " hit");
 
         cue.stop();
         cue.deactivateCollision();
@@ -156,8 +144,6 @@ public class Game {
     }
 
     private void onCueMissed() {
-        System.out.println("cue missed");
-
         cue.reset();
     }
 
@@ -166,25 +152,22 @@ public class Game {
     }
 
     private void onBallPocketed(Ball b) {
-        System.out.println(b + " pocketed");
-
         turn.ballPocketed(b);
-
         b.getBody().setActive(false);
     }
 
     private void onObjectsRest() {
-        if(turn.canStrike())
+        if(turn.canStrike()) // eliminates edge cases
             return;
 
-        System.out.println("at rest");
-
+        // check end of round
         var pocketedObjectBalls = Arrays.stream(Ball.values())
                 .filter(b -> b != Ball.WHITE)
                 .filter(b -> !b.getBody().isActive())
                 .collect(Collectors.toList());
 
         if(pocketedObjectBalls.size() >= 14) {
+            // start next round
             placeBalls(pocketedObjectBalls);
             pocketedObjectBalls.forEach(b -> b.getBody().setActive(true));
         }
@@ -193,19 +176,13 @@ public class Game {
 
             Ball.WHITE.setPosition(turn.getWhiteBallInitialPosition().x, turn.getWhiteBallInitialPosition().y);
             Ball.WHITE.getBody().setLinearVelocity(0, 0);
-
             Ball.WHITE.getBody().setActive(true);
         }
 
-        if(turn.isFoul()) {
-            renderer.setFoulMessage(turn.getPlayer() + " fouled: " + turn.getFoulInformation());
-        } else {
-            renderer.setFoulMessage("");
-        }
+        renderer.setFoulMessage(turn.getFoulInformation());
+        renderer.setActionMessage(turn.getMessage());
 
-        renderer.setActionMessage(turn.getPlayer() + " " + turn.getMessage());
-
-        var score = turn.getScore();
+        int score = turn.getScore();
 
         if(turn.getPlayer() == Player.PLAYER_ONE) {
             renderer.incrementPlayer1Score(score);

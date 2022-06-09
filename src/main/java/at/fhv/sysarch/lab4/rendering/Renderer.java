@@ -201,6 +201,9 @@ public class Renderer extends AnimationTimer {
 
         // render billard balls after table, so they appear on top
         for (Ball b : this.balls) {
+            if(!b.getBody().isActive())
+                continue;
+
             Transform t = b.getBody().getTransform();
             Circle s = b.getShape();
 
@@ -217,17 +220,17 @@ public class Renderer extends AnimationTimer {
             
             this.gc.setTransform(ballTrans);
 
-            // NOTE center of phyics circle is in the center
+            // NOTE center of physics circle is in the center
             // but javafx draws ovals from top left corner
 
-            this.gc.setFill(b.getBody().isActive() ? b.getColor() : Color.GRAY);
+            this.gc.setFill(b.getColor());
             this.gc.fillOval(-r, -r, d, d);
             
             if (b.isWhite()) {
                 continue;
             }
 
-            if (false == b.isSolid()) {
+            if (!b.isSolid()) {
                 this.gc.setFill(Color.WHITE);
                 this.gc.fillArc(-r * 0.75, -r * 0.95, d * 0.75, r * 0.75, 0, 180, ArcType.ROUND);
                 this.gc.fillArc(-r * 0.75, r * 0.2, d * 0.75, r * 0.75, 180, 180, ArcType.ROUND);
