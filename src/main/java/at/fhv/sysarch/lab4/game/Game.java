@@ -182,7 +182,7 @@ public class Game {
         renderer.setFoulMessage(turn.getFoulInformation());
         renderer.setActionMessage(turn.getMessage());
 
-        int score = turn.getScore();
+        int score = turn.getAwardedScore();
 
         if(turn.getPlayer() == Player.PLAYER_ONE) {
             renderer.incrementPlayer1Score(score);

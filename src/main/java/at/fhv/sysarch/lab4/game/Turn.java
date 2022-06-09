@@ -31,7 +31,7 @@ public class Turn {
 
     public Player getNextPlayer() {
 
-        if (getScore() > 0)
+        if (getAwardedScore() > 0)
             return player;
 
         return player == Player.PLAYER_ONE ? Player.PLAYER_TWO : Player.PLAYER_ONE;
@@ -79,13 +79,13 @@ public class Turn {
         return struckWhiteButMissed || struckNonWhite || pocketedWhite;
     }
 
-    public int getScore() {
+    public int getAwardedScore() {
         return isFoul() ? -1 : pocketed;
     }
 
     public String getMessage() {
 
-        int score = getScore();
+        int score = getAwardedScore();
 
         switch (Integer.signum(score)) {
             case -1:
